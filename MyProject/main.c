@@ -5,20 +5,26 @@
 
 #define MASK(x) (1 << x)
 
-#define RED_LED 18					//PTB18
-#define GREEN_LED 19				//PTB19
-#define BLUE_LED 1					//PTD1
+#define RED_LED 0						//Not assigned yet
+#define GREEN_LED_1 0				//Not assigned yet
+#define GREEN_LED_2 0				//Not assigned yet
+#define GREEN_LED_3 0				//Not assigned yet
+#define GREEN_LED_4 0				//Not assigned yet
+#define GREEN_LED_5 0				//Not assigned yet
+#define GREEN_LED_6 0				//Not assigned yet
+#define GREEN_LED_7 0				//Not assigned yet
+#define GREEN_LED_8 0				//Not assigned yet
 
-#define LEFT_MOTOR_FWD 0 		//PTB0 - TPM1_CH0
-#define LEFT_MOTOR_RVS 1 		//PTB1 - TPM1_CH1
-#define RIGHT_MOTOR_FWD 2 	//PTB2 - TPM2_CH0
-#define RIGHT_MOTOR_RVS 3 	//PTB3 - TPM2_CH1
+#define LEFT_MOTOR_FWD 0		//PTB0 - TPM1_CH0
+#define LEFT_MOTOR_RVS 1		//PTB1 - TPM1_CH1
+#define RIGHT_MOTOR_FWD 2		//PTB2 - TPM2_CH0
+#define RIGHT_MOTOR_RVS 3		//PTB3 - TPM2_CH1
 
-#define BUZZER 0
+#define BUZZER 0						//Not assigned yet
 
 #define BAUD_RATE 9600
-#define UART_TX 22					//PTE22
-#define UART_RX 23					//PTE23
+#define UART_TX 22					//PTE22 - TX
+#define UART_RX 23					//PTE23 - RX
 #define UART2_INT_PRIO 128
 
 #define Q_SIZE 32
@@ -31,36 +37,98 @@ typedef struct {
 } Q_T;
 
 Q_T Tx_Q, Rx_Q;
+bool isMoving = false;
 
 /*----------------------------------------------------------------------------
  * LEDs
  *---------------------------------------------------------------------------*/
 
-void activateLED(int input, bool turnOn)
+void greenLedOff()
 {
-	switch (input)
-	{
-		case 0:
-			if (turnOn)
-				PTB->PDDR |= MASK(RED_LED);
-			else
-				PTB->PDDR &= ~MASK(RED_LED);
-			break;
-		case 1:
-			if (turnOn)
-				PTB->PDDR |= MASK(GREEN_LED);
-			else
-				PTB->PDDR &= ~MASK(GREEN_LED);
-			break;
-		case 2:
-			if (turnOn)
-				PTD->PDDR |= MASK(BLUE_LED);
-			else
-				PTD->PDDR &= ~MASK(BLUE_LED);
-			break;
-		default:
-			break;
-	}
+	PTB->PCOR |= MASK(GREEN_LED_1);
+	PTB->PCOR |= MASK(GREEN_LED_2);
+	PTB->PCOR |= MASK(GREEN_LED_3);
+	PTB->PCOR |= MASK(GREEN_LED_4);
+	PTB->PCOR |= MASK(GREEN_LED_5);
+	PTB->PCOR |= MASK(GREEN_LED_6);
+	PTB->PCOR |= MASK(GREEN_LED_7);
+	PTB->PCOR |= MASK(GREEN_LED_8);
+}
+
+void greenLedOn()
+{
+	PTB->PSOR |= MASK(GREEN_LED_1);
+	PTB->PSOR |= MASK(GREEN_LED_2);
+	PTB->PSOR |= MASK(GREEN_LED_3);
+	PTB->PSOR |= MASK(GREEN_LED_4);
+	PTB->PSOR |= MASK(GREEN_LED_5);
+	PTB->PSOR |= MASK(GREEN_LED_6);
+	PTB->PSOR |= MASK(GREEN_LED_7);
+	PTB->PSOR |= MASK(GREEN_LED_8);
+}
+
+void greenLedTwoBlinks()
+{
+	greenLedOn();
+	osDelay(1000);
+	greenLedOff();
+	osDelay(1000);
+	greenLedOn();
+	osDelay(1000);
+	greenLedOff();
+	osDelay(1000);
+}
+
+void greenLedRunning()
+{
+	PTB->PSOR |= MASK(GREEN_LED_1);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_1);
+	
+	PTB->PSOR |= MASK(GREEN_LED_2);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_2);
+	
+	PTB->PSOR |= MASK(GREEN_LED_3);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_3);
+	
+	PTB->PSOR |= MASK(GREEN_LED_4);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_4);
+	
+	PTB->PSOR |= MASK(GREEN_LED_5);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_5);
+	
+	PTB->PSOR |= MASK(GREEN_LED_6);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_6);
+	
+	PTB->PSOR |= MASK(GREEN_LED_7);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_7);
+	
+	PTB->PSOR |= MASK(GREEN_LED_8);
+	osDelay(1000);
+	PTB->PCOR |= MASK(GREEN_LED_8);
+}
+
+void redLedOff()
+{
+	PTB->PCOR |= MASK(RED_LED);
+}
+
+void redLedOn()
+{
+	PTB->PSOR |= MASK(RED_LED);
+}
+
+void redBlink(int ms)
+{
+	redLedOn();
+	osDelay(ms);
+	redLedOff();
 }
 
 /*----------------------------------------------------------------------------
@@ -73,6 +141,8 @@ void moveStop()
 	TPM1_C1V = 0;
 	TPM2_C0V = 0;
 	TPM2_C1V = 0;
+	
+	isMoving = false;
 }
 
 void moveForward(int power)
@@ -88,6 +158,8 @@ void moveForward(int power)
 	TPM1_C1V = 0;
 	TPM2_C0V = TPM2->MOD * coeff;
 	TPM2_C1V = 0;
+	
+	isMoving = true;
 }
 
 void moveBackward(int power)
@@ -103,6 +175,8 @@ void moveBackward(int power)
 	TPM1_C1V = TPM1->MOD * coeff;
 	TPM2_C0V = 0;
 	TPM2_C1V = TPM2->MOD * coeff;
+	
+	isMoving = true;
 }
 
 void moveLeft(int power)
@@ -118,6 +192,8 @@ void moveLeft(int power)
 	TPM1_C1V = TPM1->MOD * coeff;
 	TPM2_C0V = TPM2->MOD * coeff;
 	TPM2_C1V = 0;
+	
+	isMoving = true;
 }
 
 void moveRight(int power)
@@ -133,6 +209,28 @@ void moveRight(int power)
 	TPM1_C1V = 0;
 	TPM2_C0V = 0;
 	TPM2_C1V = TPM2->MOD * coeff;
+	
+	isMoving = true;
+}
+
+/*----------------------------------------------------------------------------
+ * Audio
+ *---------------------------------------------------------------------------*/
+
+void audioStop()
+{
+}
+
+void audioConnEst()
+{
+}
+
+void audioSong()
+{
+}
+
+void audioEnd()
+{
 }
 
 /*----------------------------------------------------------------------------
@@ -238,18 +336,38 @@ void UART2_IRQHandler(void)
 
 void initLED()
 {
-	// Enable Clock to PORTB and PORTD
-	SIM->SCGC5 |= ((SIM_SCGC5_PORTB_MASK) | (SIM_SCGC5_PORTD_MASK));
+	// Enable Clock to PORTB
+	SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;
 	
 	// Configure MUX settings to make all 3 pins GPIO
 	PORTB->PCR[RED_LED] &= ~PORT_PCR_MUX_MASK;
 	PORTB->PCR[RED_LED] |= PORT_PCR_MUX(1);
 	
-	PORTB->PCR[GREEN_LED] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[GREEN_LED] |= PORT_PCR_MUX(1);
+	PORTB->PCR[GREEN_LED_1] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_1] |= PORT_PCR_MUX(1);
 	
-	PORTD->PCR[BLUE_LED] &= ~PORT_PCR_MUX_MASK;
-	PORTD->PCR[BLUE_LED] |= PORT_PCR_MUX(1);
+	PORTB->PCR[GREEN_LED_2] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_2] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_3] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_3] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_4] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_4] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_5] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_5] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_6] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_6] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_7] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_7] |= PORT_PCR_MUX(1);
+	
+	PORTB->PCR[GREEN_LED_8] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[GREEN_LED_8] |= PORT_PCR_MUX(1);
+	
+	//PTB->PDDR |= (MASK(RED_LED) | MASK(GREEN_LED));
 }
 
 void initMotors() 
@@ -353,13 +471,26 @@ void initUART2(uint32_t baud_rate) {
 }
 
 /*----------------------------------------------------------------------------
- * Threads
+ * Tasks
  *---------------------------------------------------------------------------*/
+void tBrain(void *argument)
+{
+	for (;;) {}
+}
 
-void app_main (void *argument) {
- 
-  // ...
-  for (;;) {}
+void tMotorControl(void *argument)
+{
+	for (;;) {}
+}
+
+void tLED(void *argument)
+{
+	for (;;) {}
+}
+
+void tAudio(void *argument)
+{
+	for (;;) {}
 }
 
 /*----------------------------------------------------------------------------
@@ -367,16 +498,18 @@ void app_main (void *argument) {
  *---------------------------------------------------------------------------*/
  
 int main (void) {
- 
-  // System Initialization
-  SystemCoreClockUpdate();
+	// System Initialization
+	SystemCoreClockUpdate();
 	initLED();
-  initMotors();
+	initMotors();
 	initBuzzer();
 	initUART2(BAUD_RATE);
  
-  osKernelInitialize();                 // Initialize CMSIS-RTOS
-  osThreadNew(app_main, NULL, NULL);    // Create application main thread
-  osKernelStart();                      // Start thread execution
+	osKernelInitialize();                 // Initialize CMSIS-RTOS
+	osThreadNew(tBrain, NULL, NULL);
+	osThreadNew(tMotorControl, NULL, NULL);
+	osThreadNew(tLED, NULL, NULL);
+	osThreadNew(tAudio, NULL, NULL);
+	osKernelStart();                      // Start thread execution
   for (;;) {}
 }
