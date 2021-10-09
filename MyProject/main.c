@@ -586,5 +586,5 @@ int main (void) {
 	osThreadNew(tLED, NULL, NULL);
 	osThreadNew(tAudio, NULL, NULL);
 	osKernelStart();                      // Start thread execution
-  for (;;) {}
+	for (;;) {}
 }
