@@ -1,12 +1,40 @@
-// Load Wi-Fi library
-#include <WiFi.h>
-
+/* ----------------------------- UART Setup ----------------------------- */
+// ESP32 transmits data to KL25Z via UART2 (Serial2.write)
 #define RXD2 16
 #define TXD2 17
 
-// Replace with your network credentials
-const char* ssid = "";
-const char* password = "";
+// Assign output variables to GPIO pins
+const int output26 = 26;
+
+// Timing variables
+unsigned long currentTime = millis();
+unsigned long previousTime = 0; 
+// Define timeout time in milliseconds (example: 2000ms = 2s)
+const long timeoutTime = 2000;
+int wait30 = 30000; // time to reconnect when connection is lost.
+
+#define ESP32_LEDRED_ON 0b00000001
+#define ESP32_LEDRED_OFF 0b00000010
+#define ESP32_LEDGREEN_ON 0b00000011
+#define ESP32_LEDGREEN_OFF 0b00000100 
+#define ESP32_MOVE_STOP 0b00110000 
+#define ESP32_MOVE_FORWARD 0b00110001
+#define ESP32_MOVE_BACK 0b00110010
+#define ESP32_MOVE_LEFT 0b00110011 
+#define ESP32_MOVE_RIGHT 0b00110100
+#define ESP32_SONG_WIFI 0b11000000
+#define ESP32_SONG_TRAVELLING 0b11000001
+#define ESP32_SONG_END 0b11000010
+#define ESP32_MODE_MANUAL 0b11110000
+#define ESP32_MODE_AUTO 0b11110001
+#define ESP32_MISC_RESERVED 0b00000000 
+#define ESP32_MISC_CONNECTED 0b11111111
+
+/* ----------------------------- Wifi Setup ----------------------------- */
+#include <WiFi.h>
+// Replace with your network credentials, change to 2.4Ghz if using Hotspot
+const char* ssid = "BigTits";
+const char* password = "rtpy4269";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -14,25 +42,14 @@ WiFiServer server(80);
 // Variable to store the HTTP request
 String response, ip_address;
 
-// Auxiliar variables to store the current output state
+// Auxiliary variables to store the current output state
 String output26State = "off";
 
-// Assign output variables to GPIO pins
-const int output26 = 26;
-
-// Current time
-unsigned long currentTime = millis();
-// Previous time
-unsigned long previousTime = 0; 
-// Define timeout time in milliseconds (example: 2000ms = 2s)
-const long timeoutTime = 2000;
-int wait30 = 30000; // time to reconnect when connection is lost.
-
-// This is your Static IP
-IPAddress local_IP(192, 168, 43, 221); 
+// check using ipconfig (Windows cmd)
+IPAddress local_IP(192, 168, 171, 156);    // ensure no clashing IP 
 // Gateway IP address
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 0, 0);
+IPAddress gateway(192, 168, 171, 6);
+IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4); 
 
@@ -44,20 +61,22 @@ void setup() {
   // Set outputs to LOW
   digitalWrite(output26, LOW);
 
-  //Configure Static IP
-  /*if(!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
-  {
-    Serial.println("Static IP failed to configure");
-  }*/
-
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
+  // Configure Static IP
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    Serial.println("Static IP failed to configure");
+  }
+  
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+  
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
@@ -76,6 +95,7 @@ void loop() {
     WiFi.begin(ssid, password);
     wait30 = millis() + 30000;
   } 
+  
   // Check if a client has connected..
   WiFiClient client = server.available();
   if (!client) {
@@ -84,11 +104,7 @@ void loop() {
    
   Serial.print("New client: ");
   Serial.println(client.remoteIP());
-   
-  // Espera hasta que el cliente envíe datos.
-  // while(!client.available()){ delay(1); }
-
-  /////////////////////////////////////////////////////
+  
   // Read the information sent by the client.
   String req = client.readStringUntil('\r');
   Serial.println(req);
@@ -98,6 +114,8 @@ void loop() {
   {
     response = "WiFi Connected: " + ip_address;
   }
+
+  /* ------------------- Debugging Purposes  ------------------- */
   if(req.indexOf("onRed") != -1)
   {
     digitalWrite(output26, HIGH);
@@ -109,42 +127,39 @@ void loop() {
     digitalWrite(output26, LOW);
     response = "RED LED OFF";
     Serial2.write(0x30);
-  }  
-  if(req.indexOf("onGreen") != -1)
-  {
-    digitalWrite(output26, HIGH);
-    response = "GREEN LED ON";
-    Serial2.write(0x33);
   }
-  if(req.indexOf("offGreen") != -1)
+
+  /* ------------------- Movement  ------------------- */
+
+  if(req.indexOf("moveStop") != -1)
   {
-    digitalWrite(output26, LOW);
-    response = "GREEN LED OFF";
-    Serial2.write(0x32);
+    response = "MOVE STOP";
+    Serial2.write(ESP32_MOVE_STOP);
   }
-  if(req.indexOf("onBlue") != -1)
+
+  if(req.indexOf("moveForward") != -1)
   {
-    digitalWrite(output26, HIGH);
-    response = "BLUE LED ON";
-    Serial2.write(0x35);
+    response = "MOVE FORWARD";
+    Serial2.write(ESP32_MOVE_FORWARD);
   }
-  if(req.indexOf("offBlue") != -1)
+
+  if(req.indexOf("moveLeft") != -1)
   {
-    digitalWrite(output26, LOW);
-    response = "BLUE LED OFF";
-    Serial2.write(0x34);
+    response = "MOVE LEFT";
+    Serial2.write(ESP32_MOVE_LEFT);
   }
-  /*
-       if (req.indexOf("on12") != -1) {digitalWrite(LED12, HIGH); estado = "LED12 ON";}
-       if (req.indexOf("off12") != -1){digitalWrite(LED12, LOW); estado = "LED12 OFF";}
-       if (req.indexOf("on14") != -1) {digitalWrite(LED14, HIGH); estado = "LED14 ON";}
-       if (req.indexOf("off14") != -1){digitalWrite(LED14, LOW); estado = "LED14 OFF";}
-       if (req.indexOf("consulta") != -1){
-           estado ="";
-           if (digitalRead(LED12) == HIGH) {estado = "LED12 ON,";} else {estado = "LED12 OFF,";}
-           if (digitalRead(LED14) == HIGH) {estado = estado + "LED14 ON";} else {estado = estado + "LED14 OFF";}
-           }*/
-           
+
+  if(req.indexOf("moveRight") != -1)
+  {
+    response = "MOVE RIGHT";
+    Serial2.write(ESP32_MOVE_RIGHT);
+  }
+
+  if(req.indexOf("moveBack") != -1)
+  {
+    response = "MOVE BACK";
+    Serial2.write(ESP32_MOVE_BACK);
+  }
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: text/html");
