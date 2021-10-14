@@ -1,3 +1,12 @@
+#ifndef DEFINITIONS
+#define DEFINITIONS
+
+#include "RTE_Components.h"
+#include CMSIS_device_header
+#include "cmsis_os2.h"
+#include "stdbool.h"
+#include "stdlib.h"
+
 #define MASK(x) (1 << x)
 
 /* --------------------------- LEDs -----------------------------------*/
@@ -36,19 +45,19 @@
 #define UART_RX 23                  //PTE23 - RX
 #define UART2_INT_PRIO 128
 
-#define ESP32_LEDRED_ON 0b00000001
-#define ESP32_LEDRED_OFF 0b00000010
-#define ESP32_LEDGREEN_ON 0b00000011
-#define ESP32_LEDGREEN_OFF 0b00000100 
-#define ESP32_MOVE_STOP 0b00110000 
-#define ESP32_MOVE_FORWARD 0b00110001
-#define ESP32_MOVE_BACK 0b00110010
-#define ESP32_MOVE_LEFT 0b00110011 
-#define ESP32_MOVE_RIGHT 0b00110100
-#define ESP32_MODE_MANUAL 0b11110000
-#define ESP32_MODE_AUTO 0b11110001
-#define ESP32_MISC_RESERVED 0b00000000 
-#define ESP32_MISC_CONNECTED 0b11111111
+#define ESP32_LEDRED_ON 0b00000001U
+#define ESP32_LEDRED_OFF 0b00000010U
+#define ESP32_LEDGREEN_ON 0b00000011U
+#define ESP32_LEDGREEN_OFF 0b00000100U 
+#define ESP32_MOVE_STOP 0b00110000U
+#define ESP32_MOVE_FORWARD 0b00110001U
+#define ESP32_MOVE_BACK 0b00110010U
+#define ESP32_MOVE_LEFT 0b00110011U
+#define ESP32_MOVE_RIGHT 0b00110100U
+#define ESP32_MODE_MANUAL 0b11110000U
+#define ESP32_MODE_AUTO 0b11110001U
+#define ESP32_MISC_RESERVED 0b00000000U 
+#define ESP32_MISC_CONNECTED 0b11111111U
 
 #define Q_SIZE 32
 typedef struct {
@@ -61,3 +70,5 @@ typedef struct {
 typedef enum moveState {
 	STOP, FORWARD, BACKWARD, LEFT, RIGHT
 } mvState;
+
+#endif
