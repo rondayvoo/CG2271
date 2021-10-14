@@ -4,73 +4,20 @@
 #include "stdbool.h"
 #include "stdlib.h"
 
-#define MASK(x) (1 << x)
-
-#define RED_LED 0						//Not assigned yet
-#define GREEN_LED_1 0				//Not assigned yet
-#define GREEN_LED_2 0				//Not assigned yet
-#define GREEN_LED_3 0				//Not assigned yet
-#define GREEN_LED_4 0				//Not assigned yet
-#define GREEN_LED_5 0				//Not assigned yet
-#define GREEN_LED_6 0				//Not assigned yet
-#define GREEN_LED_7 0				//Not assigned yet
-#define GREEN_LED_8 0				//Not assigned yet
-
-#define LEFT_MOTOR_FWD 0		//PTB0 - TPM1_CH0
-#define LEFT_MOTOR_RVS 1		//PTB1 - TPM1_CH1
-#define RIGHT_MOTOR_FWD 2		//PTB2 - TPM2_CH0
-#define RIGHT_MOTOR_RVS 3		//PTB3 - TPM2_CH1
-
-#define BUZZER 0						//Not assigned yet
-
-#define BAUD_RATE 9600
-#define UART_TX 22					//PTE22 - TX
-#define UART_RX 23					//PTE23 - RX
-#define UART2_INT_PRIO 128
-
-#define ESP32_LEDRED_ON 0b00000001
-#define ESP32_LEDRED_OFF 0b00000010
-#define ESP32_LEDGREEN_ON 0b00000011
-#define ESP32_LEDGREEN_OFF 0b00000100 
-#define ESP32_MOVE_STOP 0b00110000 
-#define ESP32_MOVE_FORWARD 0b00110001
-#define ESP32_MOVE_BACK 0b00110010
-#define ESP32_MOVE_LEFT 0b00110011 
-#define ESP32_MOVE_RIGHT 0b00110100
-#define ESP32_SONG_WIFI 0b11000000
-#define ESP32_SONG_TRAVELLING 0b11000001
-#define ESP32_SONG_END 0b11000010
-#define ESP32_MODE_MANUAL 0b11110000
-#define ESP32_MODE_AUTO 0b11110001
-#define ESP32_MISC_RESERVED 0b00000000 
-#define ESP32_MISC_CONNECTED 0b11111111
-
-#define Q_SIZE 32
-
-typedef struct {
-	unsigned char Data[Q_SIZE];
-	unsigned int Head; 				// points to oldest data element
-	unsigned int Tail; 				// points to next free space
-	unsigned int Size; 				// quantity of elements in queue
-} Q_T;
-
-typedef enum moveState {
-	STOP, FORWARD, BACKWARD, LEFT, RIGHT
-} mvState;
+#include "definitions.h"
 
 /*----------------------------------------------------------------------------
  * Global Variables
  *---------------------------------------------------------------------------*/
 
-volatile char rx_data = ESP32_MISC_RESERVED;
-
-bool isConnected = false;
+volatile unsigned char rx_data = ESP32_MISC_RESERVED;
+volatile bool isConnected = false;
 bool runFinished = false;
 mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
 
-static int songConnEst[0] = {};
+static int songConnEst[SONGCONNEST_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5, B4, A4, G4, F4, E4, D4, C4};
 static int songMain[0] = {};
 static int songRunFin[0] = {};
 
@@ -248,6 +195,10 @@ void audioStop()
 
 void audioConnEst()
 {
+    for (int i = 0; i < SONGCONNEST_NOTE_COUNT; i++) {
+        TPM0->MOD = songConnEst[i];       // play at music note frequency
+        TPM0_C0V = songConnEst[i] / 2;    // mantain 50% duty cycle
+    }
 }
 
 void audioSong(int note)
@@ -441,6 +392,31 @@ void initMotors()
 
 void initBuzzer()
 {
+    // Enable PortE
+    SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
+
+	// Configure PORTE24 (TPM0_CH0) using MUX
+    PORTE->PCR[BUZZER] &= ~PORT_PCR_MUX_MASK;
+    PORTE->PCR[BUZZER] |= PORT_PCR_MUX(3);
+
+    // Enable TPM0
+    SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
+    // SIM->SOPT2 (common Clock Source) already established in initMotors
+
+    /* set MOD value
+     * 48Mhz Clock / 128 Prescalar = effective 375000Hz Clock (slower)
+     * I want 50Hz PWM signal and to use Edge-Aligned PWM Signal, hence PWM period = (MOD+1) cycles
+     * 375000Hz / 7500 (MOD) gives 50Hz
+     */
+    TPM0->MOD = 7500;
+
+    // Set CMOD (Clock Mode Selection and Prescalar)
+    TPM0->SC &= ~( (TPM_SC_CMOD_MASK) | (TOM_SC_PS_MASK) );
+    TPM0->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
+
+    // Setting Timer Mode (Edge-aligned PWM, high true pulses) for TPM0_CH0
+    TPM0_C0SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+    TPM0_C0SC |= ( TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1) );
 }
 
 void initUART2(uint32_t baud_rate) {
@@ -490,13 +466,14 @@ void initUART2(uint32_t baud_rate) {
  *---------------------------------------------------------------------------*/
 void tBrain(void *argument)
 {
-    rx_data = Q_Dequeue(&Rx_q);
+    rx_data = Q_Dequeue(&Rx_Q);
 
 	for (;;) 
 	{
 		if (rx_data == ESP32_MISC_CONNECTED)
 		{
 			greenLedTwoBlinks();
+            isConnected = true;
 		}
 	}
 }
