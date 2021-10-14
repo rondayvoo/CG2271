@@ -28,6 +28,23 @@
 #define UART_RX 23					//PTE23 - RX
 #define UART2_INT_PRIO 128
 
+#define ESP32_LEDRED_ON 0b00000001
+#define ESP32_LEDRED_OFF 0b00000010
+#define ESP32_LEDGREEN_ON 0b00000011
+#define ESP32_LEDGREEN_OFF 0b00000100 
+#define ESP32_MOVE_STOP 0b00110000 
+#define ESP32_MOVE_FORWARD 0b00110001
+#define ESP32_MOVE_BACK 0b00110010
+#define ESP32_MOVE_LEFT 0b00110011 
+#define ESP32_MOVE_RIGHT 0b00110100
+#define ESP32_SONG_WIFI 0b11000000
+#define ESP32_SONG_TRAVELLING 0b11000001
+#define ESP32_SONG_END 0b11000010
+#define ESP32_MODE_MANUAL 0b11110000
+#define ESP32_MODE_AUTO 0b11110001
+#define ESP32_MISC_RESERVED 0b00000000 
+#define ESP32_MISC_CONNECTED 0b11111111
+
 #define Q_SIZE 32
 
 typedef struct {
@@ -44,6 +61,8 @@ typedef enum moveState {
 /*----------------------------------------------------------------------------
  * Global Variables
  *---------------------------------------------------------------------------*/
+
+volatile char rx_data = ESP32_MISC_RESERVED;
 
 bool isConnected = false;
 bool runFinished = false;
@@ -306,26 +325,11 @@ void UART2_IRQHandler(void)
 {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	
-	//IRQ Transmitter
-	if (UART2->S1 & UART_S1_TDRE_MASK) 
-	{
-		// can send another character
-		if (!Q_Empty(&Tx_Q)) 
-		{
-			UART2->D = Q_Dequeue(&Tx_Q);
-		} 
-		
-		else 
-		{
-			// queue is empty so disable tx
-			UART2->C2 &= ~UART_C2_TIE_MASK;
-		}
-	}
-	
 	//IRQ Reciever
 	if (UART2->S1 & UART_S1_RDRF_MASK) 
 	{
 		// received a character
+        // RDRF cleared when reading from UART2->D
 		if (!Q_Full(&Rx_Q)) 
 		{
 			Q_Enqueue(&Rx_Q, UART2->D);
@@ -333,8 +337,10 @@ void UART2_IRQHandler(void)
 		
 		else 
 		{
-			// error - queue full.
-			while (1);
+			// error - RX_Q full.
+            // make space by discarding all information in RX_Q (assume it is not needed anymore)
+            Q_Init(&Rx_Q);
+            Q_Enqueue(&Rx_Q, UART2->D);
 		}
 	}
 }
@@ -484,11 +490,11 @@ void initUART2(uint32_t baud_rate) {
  *---------------------------------------------------------------------------*/
 void tBrain(void *argument)
 {
-	unsigned char connected[Q_SIZE] = "something";
-	
+    rx_data = Q_Dequeue(&Rx_q);
+
 	for (;;) 
 	{
-		if (Rx_Q.Data == connected)
+		if (rx_data == ESP32_MISC_CONNECTED)
 		{
 			greenLedTwoBlinks();
 		}
