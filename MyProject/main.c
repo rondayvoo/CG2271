@@ -19,10 +19,8 @@ Q_T Tx_Q, Rx_Q;
 int songConnEst[SONGCONNEST_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5, B4, A4, G4, F4, E4, D4, C4};
 int songMain[0] = {};
 int songRunFin[0] = {};
-
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
-
 /*----------------------------------------------------------------------------
  * UART
  *---------------------------------------------------------------------------*/
@@ -62,29 +60,48 @@ void tBrain(void *argument)
 	{
 		osSemaphoreAcquire(tBrainSem, osWaitForever);
 		rx_data = Q_Dequeue(&Rx_Q);
-		
 		switch (rx_data)
 		{
 			case ESP32_MISC_CONNECTED:
+			{
 				greenLedTwoBlinks();
-			  isConnected = true;
-			break;
+				isConnected = true;
+				rx_data = ESP32_MISC_RESERVED;
+				break;
+			}
 			
 			case ESP32_MOVE_FORWARD:
-				
-			break;
-			
-			case ESP32_MOVE_LEFT:
-				
-			break;
-			
-			case ESP32_MOVE_RIGHT:
-				
-			break;
+			{
+				currMvState = FORWARD;
+				break;
+			}
 			
 			case ESP32_MOVE_BACK:
-				
-			break;
+			{
+				currMvState = BACKWARD;
+				break;
+			}
+			
+			case ESP32_MOVE_LEFT:
+			{
+				currMvState = LEFT;
+				break;
+			}
+			
+			case ESP32_MOVE_RIGHT:
+			{
+				currMvState = RIGHT;
+				break;
+			}
+			
+			case ESP32_MOVE_STOP:
+			{
+				currMvState = STOP;
+				break;
+			}
+			
+			default:
+				break;
 		}
 	}
 }
@@ -157,7 +174,7 @@ void tAudio(void *argument)
 		else
 		{
 			audioSong(currNote);
-			currNote = currNote >= 64 ? 0 : currNote + 1;
+			currNote = currNote == SONGMAIN_NOTE_COUNT ? 0 : currNote + 1;
 		}
 	}
 }

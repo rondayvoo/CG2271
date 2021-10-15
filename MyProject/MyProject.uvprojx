@@ -387,6 +387,31 @@
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
             </File>
+            <File>
+              <FileName>audioFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\audioFunctions.c</FilePath>
+            </File>
+            <File>
+              <FileName>initializationFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\initializationFunctions.c</FilePath>
+            </File>
+            <File>
+              <FileName>ledFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ledFunctions.c</FilePath>
+            </File>
+            <File>
+              <FileName>movementFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\movementFunctions.c</FilePath>
+            </File>
+            <File>
+              <FileName>queueFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\queueFunctions.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
