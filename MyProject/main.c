@@ -16,10 +16,6 @@ mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
 
-int songConnEst[SONGCONNEST_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5, B4, A4, G4, F4, E4, D4, C4};
-int songMain[0] = {};
-int songRunFin[0] = {};
-
 /*----------------------------------------------------------------------------
  * UART
  *---------------------------------------------------------------------------*/
@@ -53,14 +49,52 @@ void UART2_IRQHandler(void)
  *---------------------------------------------------------------------------*/
 void tBrain(void *argument)
 {
-    rx_data = Q_Dequeue(&Rx_Q);
+	rx_data = Q_Dequeue(&Rx_Q);
 
 	for (;;) 
 	{
-		if (rx_data == ESP32_MISC_CONNECTED)
+		switch (rx_data)
 		{
-			greenLedTwoBlinks();
-      isConnected = true;
+			case ESP32_MISC_CONNECTED:
+			{
+				greenLedTwoBlinks();
+				isConnected = true;
+				rx_data = ESP32_MISC_RESERVED;
+				break;
+			}
+			
+			case ESP32_MOVE_FORWARD:
+			{
+				currMvState = FORWARD;
+				break;
+			}
+			
+			case ESP32_MOVE_BACK:
+			{
+				currMvState = BACKWARD;
+				break;
+			}
+			
+			case ESP32_MOVE_LEFT:
+			{
+				currMvState = LEFT;
+				break;
+			}
+			
+			case ESP32_MOVE_RIGHT:
+			{
+				currMvState = RIGHT;
+				break;
+			}
+			
+			case ESP32_MOVE_STOP:
+			{
+				currMvState = STOP;
+				break;
+			}
+			
+			default:
+				break;
 		}
 	}
 }
