@@ -13,22 +13,24 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 int wait30 = 30000; // time to reconnect when connection is lost.
 
-#define ESP32_LEDRED_ON 0b00000001
-#define ESP32_LEDRED_OFF 0b00000010
-#define ESP32_LEDGREEN_ON 0b00000011
-#define ESP32_LEDGREEN_OFF 0b00000100 
-#define ESP32_MOVE_STOP 0b00110000 
-#define ESP32_MOVE_FORWARD 0b00110001
-#define ESP32_MOVE_BACK 0b00110010
-#define ESP32_MOVE_LEFT 0b00110011 
-#define ESP32_MOVE_RIGHT 0b00110100
-#define ESP32_SONG_WIFI 0b11000000
-#define ESP32_SONG_TRAVELLING 0b11000001
-#define ESP32_SONG_END 0b11000010
-#define ESP32_MODE_MANUAL 0b11110000
-#define ESP32_MODE_AUTO 0b11110001
-#define ESP32_MISC_RESERVED 0b00000000 
-#define ESP32_MISC_CONNECTED 0b11111111
+#define ESP32_LEDRED_ON 0b00000001U
+#define ESP32_LEDRED_OFF 0b00000010U
+#define ESP32_LEDGREEN_ON 0b00000011U
+#define ESP32_LEDGREEN_OFF 0b00000100U 
+
+#define ESP32_MOVE_STOP 0b00110000U
+#define ESP32_MOVE_FORWARD 0b00110001U
+#define ESP32_MOVE_BACK 0b00110010U
+#define ESP32_MOVE_LEFT 0b00110011U
+#define ESP32_MOVE_RIGHT 0b00110100U
+
+#define ESP32_MODE_MANUAL 0b11110000U
+#define ESP32_MODE_AUTO 0b11110001U
+
+#define ESP32_MISC_RESERVED 0b11000000U
+#define ESP32_MISC_CONNECTED 0b11000001U
+#define ESP32_MISC_TESTING_ON 0b11000010U
+#define ESP32_MISC_TESTING_OFF 0b11000011U
 
 /* ----------------------------- Wifi Setup ----------------------------- */
 #include <WiFi.h>
@@ -46,9 +48,9 @@ String response, ip_address;
 String output26State = "off";
 
 // check using ipconfig (Windows cmd)
-IPAddress local_IP(192, 168, 171, 156);    // ensure no clashing IP 
+IPAddress local_IP(192, 168, 63, 156);   // ensure no clashing IP 
 // Gateway IP address
-IPAddress gateway(192, 168, 171, 6);
+IPAddress gateway(192, 168, 63, 87);     // 1,1 at the end
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4); 
@@ -110,23 +112,31 @@ void loop() {
   Serial.println(req);
 
   // Make the client's request.
+  
+  /* ------------------- Debugging Purposes  ------------------- */
   if(req.indexOf("status") != -1)
   {
     response = "WiFi Connected: " + ip_address;
   }
-
-  /* ------------------- Debugging Purposes  ------------------- */
+  
   if(req.indexOf("onRed") != -1)
   {
     digitalWrite(output26, HIGH);
-    response = "RED LED ON";
-    Serial2.write(0x31);
+    response = "TESTING RED LED, ON";
+    Serial2.write(ESP32_MISC_TESTING_ON);
   }
+  
   if(req.indexOf("offRed") != -1)
   {
     digitalWrite(output26, LOW);
-    response = "RED LED OFF";
-    Serial2.write(0x30);
+    response = "TESTING RED LED, OFF";
+    Serial2.write(ESP32_MISC_TESTING_OFF);
+  }
+
+  if (req.indexOf("connected") != -1)
+  {
+    response = "CONNECTED";
+    Serial2.write(ESP32_MISC_CONNECTED);
   }
 
   /* ------------------- Movement  ------------------- */

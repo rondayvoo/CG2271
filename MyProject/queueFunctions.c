@@ -37,10 +37,11 @@ int Q_Enqueue(Q_T * q, unsigned char d)
 	else
 		return 0; // failure
 }
-unsigned char Q_Dequeue(Q_T * q) 
+
+uint8_t Q_Dequeue(Q_T * q) 
 {
 	// Must check to see if queue is empty before dequeueing
-	unsigned char t = 0;
+	uint8_t t = 0;
 	
 	if (!Q_Empty(q)) 
 	{

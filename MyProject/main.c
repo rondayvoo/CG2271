@@ -9,13 +9,15 @@
  * Global Variables
  *---------------------------------------------------------------------------*/
 
-volatile unsigned char rx_data = ESP32_MISC_RESERVED;
+volatile uint8_t rx_data = ESP32_MISC_RESERVED;
 volatile bool isConnected = false;
 bool runFinished = false;
 mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
 
+osSemaphoreId_t tBrainSem;
+osSemaphoreId_t tMotorControlSem;
 /*----------------------------------------------------------------------------
  * UART
  *---------------------------------------------------------------------------*/
@@ -28,18 +30,20 @@ void UART2_IRQHandler(void)
 	if (UART2->S1 & UART_S1_RDRF_MASK) 
 	{
 		// received a character
-        // RDRF cleared when reading from UART2->D
+		// RDRF cleared when reading from UART2->D
 		if (!Q_Full(&Rx_Q)) 
 		{
+			PTB->PSOR |= MASK(TESTING_LED);
 			Q_Enqueue(&Rx_Q, UART2->D);
+			osSemaphoreRelease(tBrainSem);
 		} 
 		
 		else 
 		{
 			// error - RX_Q full.
-            // make space by discarding all information in RX_Q (assume it is not needed anymore)
-            Q_Init(&Rx_Q);
-            Q_Enqueue(&Rx_Q, UART2->D);
+			// make space by discarding all information in RX_Q (assume it is not needed anymore)
+			Q_Init(&Rx_Q);
+			Q_Enqueue(&Rx_Q, UART2->D);
 		}
 	}
 }
@@ -49,10 +53,10 @@ void UART2_IRQHandler(void)
  *---------------------------------------------------------------------------*/
 void tBrain(void *argument)
 {
-	rx_data = Q_Dequeue(&Rx_Q);
-
 	for (;;) 
 	{
+		osSemaphoreAcquire(tBrainSem, osWaitForever);
+		rx_data = Q_Dequeue(&Rx_Q);
 		switch (rx_data)
 		{
 			case ESP32_MISC_CONNECTED:
@@ -183,12 +187,19 @@ int main (void) {
 	initMotors();
 	initBuzzer();
 	initUART2(BAUD_RATE);
- 
-	osKernelInitialize();                 // Initialize CMSIS-RTOS
+	
+	/* ----------------- Semaphores ----------------- */
+	tBrainSem = osSemaphoreNew(1,0,NULL);
+	tMotorControlSem = osSemaphoreNew(1,0,NULL);
+	
+	/* ----------------- Threads/Kernels ----------------- */
+	osKernelInitialize();    // Initialize CMSIS-RTOS
 	osThreadNew(tBrain, NULL, NULL);
 	osThreadNew(tMotorControl, NULL, NULL);
 	osThreadNew(tLED, NULL, NULL);
 	osThreadNew(tAudio, NULL, NULL);
 	osKernelStart();                      // Start thread execution
-	for (;;) {}
+	
+	for (;;) {
+	}
 }
