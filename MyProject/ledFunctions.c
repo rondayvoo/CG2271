@@ -1,28 +1,40 @@
 #include "definitions.h"
 #include "ledFunctions.h"
 
+/*
+#define RED_LED 7                   //PTD7
+#define GREEN_LED_1 12              //PTC12
+#define GREEN_LED_2 13              //PTC13
+#define GREEN_LED_3 16              //PTC16
+#define GREEN_LED_4 17              //PTC17
+#define GREEN_LED_5 16              //PTA16
+#define GREEN_LED_6 17              //PTA17
+#define GREEN_LED_7 31              //PTE31
+#define GREEN_LED_8 6               //PTD6
+*/
+
 void greenLedOff(void)
 {
-	PTB->PCOR |= MASK(GREEN_LED_1);
-	PTB->PCOR |= MASK(GREEN_LED_2);
-	PTB->PCOR |= MASK(GREEN_LED_3);
-	PTB->PCOR |= MASK(GREEN_LED_4);
-	PTB->PCOR |= MASK(GREEN_LED_5);
-	PTB->PCOR |= MASK(GREEN_LED_6);
-	PTB->PCOR |= MASK(GREEN_LED_7);
-	PTB->PCOR |= MASK(GREEN_LED_8);
+	PTC->PCOR |= MASK(GREEN_LED_1);
+	PTC->PCOR |= MASK(GREEN_LED_2);
+	PTC->PCOR |= MASK(GREEN_LED_3);
+	PTC->PCOR |= MASK(GREEN_LED_4);
+	PTA->PCOR |= MASK(GREEN_LED_5);
+	PTA->PCOR |= MASK(GREEN_LED_6);
+	PTE->PCOR |= MASK(GREEN_LED_7);
+	PTD->PCOR |= MASK(GREEN_LED_8);
 }
 
 void greenLedOn(void)
 {
-	PTB->PSOR |= MASK(GREEN_LED_1);
-	PTB->PSOR |= MASK(GREEN_LED_2);
-	PTB->PSOR |= MASK(GREEN_LED_3);
-	PTB->PSOR |= MASK(GREEN_LED_4);
-	PTB->PSOR |= MASK(GREEN_LED_5);
-	PTB->PSOR |= MASK(GREEN_LED_6);
-	PTB->PSOR |= MASK(GREEN_LED_7);
-	PTB->PSOR |= MASK(GREEN_LED_8);
+	PTC->PSOR |= MASK(GREEN_LED_1);
+	PTC->PSOR |= MASK(GREEN_LED_2);
+	PTC->PSOR |= MASK(GREEN_LED_3);
+	PTC->PSOR |= MASK(GREEN_LED_4);
+	PTA->PSOR |= MASK(GREEN_LED_5);
+	PTA->PSOR |= MASK(GREEN_LED_6);
+	PTE->PSOR |= MASK(GREEN_LED_7);
+	PTD->PSOR |= MASK(GREEN_LED_8);
 }
 
 void greenLedTwoBlinks(void)
@@ -39,47 +51,47 @@ void greenLedTwoBlinks(void)
 
 void greenLedRunning(void)
 {
-	PTB->PSOR |= MASK(GREEN_LED_1);
+	PTC->PSOR |= MASK(GREEN_LED_1);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_1);
+	PTC->PCOR |= MASK(GREEN_LED_1);
 	
-	PTB->PSOR |= MASK(GREEN_LED_2);
+	PTC->PSOR |= MASK(GREEN_LED_2);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_2);
+	PTC->PCOR |= MASK(GREEN_LED_2);
 	
-	PTB->PSOR |= MASK(GREEN_LED_3);
+	PTC->PSOR |= MASK(GREEN_LED_3);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_3);
+	PTC->PCOR |= MASK(GREEN_LED_3);
 	
-	PTB->PSOR |= MASK(GREEN_LED_4);
+	PTC->PSOR |= MASK(GREEN_LED_4);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_4);
+	PTC->PCOR |= MASK(GREEN_LED_4);
 	
-	PTB->PSOR |= MASK(GREEN_LED_5);
+	PTA->PSOR |= MASK(GREEN_LED_5);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_5);
+	PTA->PCOR |= MASK(GREEN_LED_5);
 	
-	PTB->PSOR |= MASK(GREEN_LED_6);
+	PTA->PSOR |= MASK(GREEN_LED_6);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_6);
+	PTA->PCOR |= MASK(GREEN_LED_6);
 	
-	PTB->PSOR |= MASK(GREEN_LED_7);
+	PTE->PSOR |= MASK(GREEN_LED_7);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_7);
+	PTE->PCOR |= MASK(GREEN_LED_7);
 	
-	PTB->PSOR |= MASK(GREEN_LED_8);
+	PTD->PSOR |= MASK(GREEN_LED_8);
 	osDelay(1000);
-	PTB->PCOR |= MASK(GREEN_LED_8);
+	PTD->PCOR |= MASK(GREEN_LED_8);
 }
 
 void redLedOff(void)
 {
-	PTB->PCOR |= MASK(RED_LED);
+	PTD->PCOR |= MASK(RED_LED);
 }
 
 void redLedOn(void)
 {
-	PTB->PSOR |= MASK(RED_LED);
+	PTD->PSOR |= MASK(RED_LED);
 }
 
 void redBlink(int ms)

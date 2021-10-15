@@ -7,18 +7,19 @@
 #include "stdbool.h"
 #include "stdlib.h"
 
-#define MASK(x) (1 << x)
+#define MASK(x) (0x1U << x)
 
 /* --------------------------- LEDs -----------------------------------*/
-#define RED_LED 0                   //Not assigned yet
-#define GREEN_LED_1 0               //Not assigned yet
-#define GREEN_LED_2 0               //Not assigned yet
-#define GREEN_LED_3 0               //Not assigned yet
-#define GREEN_LED_4 0               //Not assigned yet
-#define GREEN_LED_5 0               //Not assigned yet
-#define GREEN_LED_6 0               //Not assigned yet
-#define GREEN_LED_7 0               //Not assigned yet
-#define GREEN_LED_8 0               //Not assigned yet
+#define RED_LED 7                   //PTD7
+#define GREEN_LED_1 12              //PTC12
+#define GREEN_LED_2 13              //PTC13
+#define GREEN_LED_3 16              //PTC16
+#define GREEN_LED_4 17              //PTC17
+#define GREEN_LED_5 16              //PTA16
+#define GREEN_LED_6 17              //PTA17
+#define GREEN_LED_7 31              //PTE31
+#define GREEN_LED_8 6               //PTD6
+#define TESTING_LED 8               //PTB8
 
 /* --------------------------- Motors -----------------------------------*/
 #define LEFT_MOTOR_FWD 0        //PTB0 - TPM1_CH0
@@ -27,7 +28,7 @@
 #define RIGHT_MOTOR_RVS 3       //PTB3 - TPM2_CH1
 
 /* --------------------------- Buzzer/Audio  -----------------------------------*/
-#define BUZZER 24               //PTE24 - TPM0_CH0
+#define BUZZER 29               //PTE29 - TPM0_CH2
 #define FREQUENCY_TO_MOD(x) (375000 / (x))
 #define SONGCONNEST_NOTE_COUNT 15
 #define C4 261
@@ -39,6 +40,9 @@
 #define B4 493
 #define C5 523
 
+/* --------------------------- Ultrasound  -----------------------------------*/
+
+
 /* --------------------------- UART/ESP32  -----------------------------------*/
 #define BAUD_RATE 9600
 #define UART_TX 22                  //PTE22 - TX
@@ -49,19 +53,24 @@
 #define ESP32_LEDRED_OFF 0b00000010U
 #define ESP32_LEDGREEN_ON 0b00000011U
 #define ESP32_LEDGREEN_OFF 0b00000100U 
+
 #define ESP32_MOVE_STOP 0b00110000U
 #define ESP32_MOVE_FORWARD 0b00110001U
 #define ESP32_MOVE_BACK 0b00110010U
 #define ESP32_MOVE_LEFT 0b00110011U
 #define ESP32_MOVE_RIGHT 0b00110100U
+
 #define ESP32_MODE_MANUAL 0b11110000U
 #define ESP32_MODE_AUTO 0b11110001U
-#define ESP32_MISC_RESERVED 0b00000000U 
-#define ESP32_MISC_CONNECTED 0b11111111U
+
+#define ESP32_MISC_RESERVED 0b11000000U
+#define ESP32_MISC_CONNECTED 0b11000001U
+#define ESP32_MISC_TESTING_ON 0b11000010U
+#define ESP32_MISC_TESTING_OFF 0b11000011U
 
 #define Q_SIZE 32
 typedef struct {
-	unsigned char Data[Q_SIZE];
+	uint8_t Data[Q_SIZE];
 	unsigned int Head; 				// points to oldest data element
 	unsigned int Tail; 				// points to next free space
 	unsigned int Size; 				// quantity of elements in queue
