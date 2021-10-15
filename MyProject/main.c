@@ -16,9 +16,6 @@ mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
 
-int songConnEst[SONGCONNEST_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5, B4, A4, G4, F4, E4, D4, C4};
-int songMain[0] = {};
-int songRunFin[0] = {};
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
 /*----------------------------------------------------------------------------
