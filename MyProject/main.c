@@ -167,7 +167,7 @@ void tAudio(void *argument)
 		else
 		{
 			audioSong(currNote);
-			currNote = currNote >= 64 ? 0 : currNote + 1;
+			currNote = currNote == SONGMAIN_NOTE_COUNT ? 0 : currNote + 1;
 		}
 	}
 }
