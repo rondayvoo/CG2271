@@ -48,9 +48,9 @@ String response, ip_address;
 String output26State = "off";
 
 // check using ipconfig (Windows cmd)
-IPAddress local_IP(192, 168, 63, 156);   // ensure no clashing IP 
+IPAddress local_IP(192, 168, 42, 156);   // ensure no clashing IP 
 // Gateway IP address
-IPAddress gateway(192, 168, 63, 87);     // 1,1 at the end
+IPAddress gateway(192, 168, 42, 196);     // 1,1 at the end
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4); 

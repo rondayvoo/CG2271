@@ -57,6 +57,7 @@ void tBrain(void *argument)
 	{
 		osSemaphoreAcquire(tBrainSem, osWaitForever);
 		rx_data = Q_Dequeue(&Rx_Q);
+		
 		switch (rx_data)
 		{
 			case ESP32_MISC_CONNECTED:
@@ -70,30 +71,35 @@ void tBrain(void *argument)
 			case ESP32_MOVE_FORWARD:
 			{
 				currMvState = FORWARD;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
 			case ESP32_MOVE_BACK:
 			{
 				currMvState = BACKWARD;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
 			case ESP32_MOVE_LEFT:
 			{
 				currMvState = LEFT;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
 			case ESP32_MOVE_RIGHT:
 			{
 				currMvState = RIGHT;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
 			case ESP32_MOVE_STOP:
 			{
 				currMvState = STOP;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
@@ -107,6 +113,7 @@ void tMotorControl(void *argument)
 {
 	for (;;) 
 	{
+		osSemaphoreAcquire(tMotorControlSem, osWaitForever);
 		switch (currMvState)
 		{
 			case STOP:
