@@ -19,7 +19,6 @@
 #define GREEN_LED_6 17              //PTA17
 #define GREEN_LED_7 31              //PTE31
 #define GREEN_LED_8 6               //PTD6
-#define TESTING_LED 8               //PTB8
 
 /* --------------------------- Motors -----------------------------------*/
 #define LEFT_MOTOR_FWD 0        //PTB0 - TPM1_CH0

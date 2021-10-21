@@ -12,15 +12,15 @@ void audioStop(void)
 void audioConnEst(void)
 {
     for (int i = 0; i < SONGCONNEST_NOTE_COUNT; i++) {
-        TPM0->MOD = songConnEst[i];       // play at music note frequency
-        TPM0_C0V = songConnEst[i] / 2;    // mantain 50% duty cycle
+        TPM0->MOD = songConnEst[i] * 6;       // play at music note frequency
+        TPM0_C2V = songConnEst[i] * 6 / 2;    // mantain 50% duty cycle
     }
 }
 
 void audioSong(int note)
 {
 	TPM0->MOD = songMain[note];
-	TPM0_C0V = songMain[note] / 2;
+	TPM0_C2V = songMain[note] / 2;
 	osDelay(100);
 }
 
@@ -28,6 +28,6 @@ void audioRunFin(void)
 {
 	for (int i = 0; i < SONGRUNFIN_NOTE_COUNT; i++) {
         TPM0->MOD = songRunFin[i];       // play at music note frequency
-        TPM0_C0V = songRunFin[i] / 2;    // mantain 50% duty cycle
+        TPM0_C2V = songRunFin[i] / 2;    // mantain 50% duty cycle
     }
 }
