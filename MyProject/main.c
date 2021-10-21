@@ -15,9 +15,26 @@ bool runFinished = false;
 mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
+//int musical_notes[7] = {1262,1294,1330,1349,1392,1440,1494};
 
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
+osSemaphoreId_t tLEDControlSem;
+osSemaphoreId_t tAudioControlSem;
+
+static void delay (volatile uint32_t nof) {
+	while (nof!= 0) {
+		__asm("NOP");
+		nof--;
+	}
+}
+
+void long_delay(volatile uint32_t nof) {
+    for (int i = 0; i < 100; i++)
+        delay(nof);
+}
+
+
 /*----------------------------------------------------------------------------
  * UART
  *---------------------------------------------------------------------------*/
@@ -33,7 +50,6 @@ void UART2_IRQHandler(void)
 		// RDRF cleared when reading from UART2->D
 		if (!Q_Full(&Rx_Q)) 
 		{
-			PTB->PSOR |= MASK(TESTING_LED);
 			Q_Enqueue(&Rx_Q, UART2->D);
 			osSemaphoreRelease(tBrainSem);
 		} 
@@ -62,8 +78,8 @@ void tBrain(void *argument)
 		{
 			case ESP32_MISC_CONNECTED:
 			{
-				greenLedTwoBlinks();
 				isConnected = true;
+				osSemaphoreRelease(tAudioControlSem);
 				rx_data = ESP32_MISC_RESERVED;
 				break;
 			}
@@ -141,6 +157,7 @@ void tLED(void *argument)
 {
 	for (;;) 
 	{
+		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
 		if (currMvState == STOP)
 		{
 			greenLedOn();
@@ -163,6 +180,7 @@ void tAudio(void *argument)
 	
 	for (;;) 
 	{
+		osSemaphoreAcquire(tAudioControlSem, osWaitForever);
 		if (isConnected && !localIsConnected)
 		{
 			audioConnEst();
@@ -198,6 +216,7 @@ int main (void) {
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(1,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
+	tAudioControlSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS
@@ -205,8 +224,17 @@ int main (void) {
 	osThreadNew(tMotorControl, NULL, NULL);
 	osThreadNew(tLED, NULL, NULL);
 	osThreadNew(tAudio, NULL, NULL);
-	osKernelStart();                      // Start thread execution
+	//osKernelStart();                      // Start thread execution
 	
 	for (;;) {
+		audioConnEst();
+		/*while (1) {
+        for (int i = 0; i < 6; i++) {
+            TPM0->MOD = FREQUENCY_TO_MOD(musical_notes[i]);          // I want a frequency corresponding to a musical note (set MOD to do it)
+            TPM0_C2V = (FREQUENCY_TO_MOD(musical_notes[i])/ 2);     // to mantain 50% Duty Cycle
+					long_delay(0xFFFF);
+        }
+	}
+}*/
 	}
 }

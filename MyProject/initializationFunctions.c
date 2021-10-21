@@ -15,7 +15,6 @@ extern Q_T Tx_Q;
 #define GREEN_LED_6 17              //PTA17
 #define GREEN_LED_7 31              //PTE31
 #define GREEN_LED_8 6               //PTD6
-#define TESTING_LED 8               //PTB8
 */
 void initLED(void)
 {
@@ -55,15 +54,11 @@ void initLED(void)
 	PORTD->PCR[GREEN_LED_8] &= ~PORT_PCR_MUX_MASK;
 	PORTD->PCR[GREEN_LED_8] |= PORT_PCR_MUX(1);
 	
-	PORTB->PCR[TESTING_LED] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[TESTING_LED] |= PORT_PCR_MUX(1);
-	
 	// Data Direction Register (Make all to Output)
-	PTC->PDDR |= MASK(GREEN_LED_1 | GREEN_LED_2 | GREEN_LED_3 | GREEN_LED_4);
-	PTD->PDDR |= MASK(RED_LED | GREEN_LED_5 | GREEN_LED_6 | GREEN_LED_8);
+	PTC->PDDR |= MASK(GREEN_LED_1) | MASK(GREEN_LED_2) | MASK (GREEN_LED_3) | MASK(GREEN_LED_4);
+	PTD->PDDR |= MASK(RED_LED) | MASK(GREEN_LED_8);
+	PTA->PDDR |= MASK(GREEN_LED_5) | MASK(GREEN_LED_6);
 	PTE->PDDR |= MASK(GREEN_LED_7);
-	PTB->PDDR |= MASK(TESTING_LED);
-	//PTB->PSOR |= MASK(TESTING_LED); 
 }
 
 void initMotors(void) 
@@ -136,6 +131,8 @@ void initBuzzer(void)
     // Enable TPM0
     SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
     // SIM->SOPT2 (common Clock Source) already established in initMotors
+	  //SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM0's TPMSRC field
+    //SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM0 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
 
     /* set MOD value
      * 48Mhz Clock / 128 Prescalar = effective 375000Hz Clock (slower)
@@ -147,6 +144,9 @@ void initBuzzer(void)
     // Set CMOD (Clock Mode Selection and Prescalar)
     TPM0->SC &= ~( (TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK) );
     TPM0->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
+		
+		// Set to Up-Counting mode
+    TPM0->SC &= ~(TPM_SC_CPWMS_MASK);
 
     // Setting Timer Mode (Edge-aligned PWM, high true pulses) for TPM0_CH2
     TPM0_C2SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
