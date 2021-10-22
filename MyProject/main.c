@@ -171,10 +171,10 @@ void tRedLED(void *argument)
 
 void tGreenLED(void *argument)
 {
-	osSemaphoreAcquire(tLEDControlSem, osWaitForever);
-	
 	for (;;)
 	{
+		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
+		
 		if (currMvState == STOP)
 			greenLedOn();
 		else
@@ -182,9 +182,9 @@ void tGreenLED(void *argument)
 			greenLedOff();
 			greenLedRunning();
 		}
+		
+		osSemaphoreRelease(tLEDControlSem);
 	}
-	
-	osSemaphoreRelease(tLEDControlSem);
 }
 
 void tLED(void *argument)
@@ -264,8 +264,5 @@ int main (void) {
 	osThreadNew(tLED, NULL, &lowPriority);
 	osThreadNew(tAudio, NULL, &lowPriority);
 	osKernelStart();                      // Start thread execution
-	
-	while (1) {
-		
-	}
+	while (1) {}
 }
