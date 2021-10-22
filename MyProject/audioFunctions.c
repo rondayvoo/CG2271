@@ -1,9 +1,19 @@
 #include "definitions.h"
 #include "audioFunctions.h"
 
-int songConnEst[SONGCONNEST_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5, B4, A4, G4, F4, E4, D4, C4};
+int songConnEst[SONGCONNEST_NOTE_COUNT] = {
+As4, As4, 0, 0, As4, As4, 0, 0, As4, As4, 0, 0, As4, As4, 0, 0,
+As4, As4, As4, B4, B4, B4, F4 * 2, F4 * 2, As4, As4, 0, 0, As4, As4, 0, 0
+};
 int songMain[0] = {};
 int songRunFin[0] = {};
+	
+static void delay(volatile uint32_t nof) {
+	while (nof != 0) {
+		__asm("NOP");
+		nof--;
+	}
+}
 
 void audioStop(void)
 {
@@ -12,9 +22,12 @@ void audioStop(void)
 void audioConnEst(void)
 {
     for (int i = 0; i < SONGCONNEST_NOTE_COUNT; i++) {
-        TPM0->MOD = songConnEst[i] * 6;       // play at music note frequency
-        TPM0_C2V = songConnEst[i] * 6 / 2;    // mantain 50% duty cycle
+        TPM0->MOD = FREQUENCY_TO_MOD(songConnEst[i] * 4);       // play at music note frequency
+        TPM0_C2V = FREQUENCY_TO_MOD(songConnEst[i] * 4) / 2;    // mantain 50% duty cycle
+				osDelay(100);
     }
+		TPM0->MOD = 0;
+		TPM0_C2V = 0;
 }
 
 void audioSong(int note)

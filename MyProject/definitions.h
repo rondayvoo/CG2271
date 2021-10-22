@@ -29,7 +29,7 @@
 /* --------------------------- Buzzer/Audio  -----------------------------------*/
 #define BUZZER 29               //PTE29 - TPM0_CH2
 #define FREQUENCY_TO_MOD(x) (375000 / (x))
-#define SONGCONNEST_NOTE_COUNT 15
+#define SONGCONNEST_NOTE_COUNT 32
 #define SONGMAIN_NOTE_COUNT 15
 #define SONGRUNFIN_NOTE_COUNT 15
 #define C4 261
@@ -38,6 +38,7 @@
 #define F4 349
 #define G4 392
 #define A4 440
+#define As4 466
 #define B4 493
 #define C5 523
 

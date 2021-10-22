@@ -15,24 +15,19 @@ bool runFinished = false;
 mvState currMvState = STOP;
 bool isSelfDriving = false;
 Q_T Tx_Q, Rx_Q;
-//int musical_notes[7] = {1262,1294,1330,1349,1392,1440,1494};
+
+const osThreadAttr_t highPriority = {
+	.priority = osPriorityHigh
+};
+
+const osThreadAttr_t lowPriority = {
+	.priority = osPriorityLow
+};
 
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
 osSemaphoreId_t tLEDControlSem;
 osSemaphoreId_t tAudioControlSem;
-
-static void delay (volatile uint32_t nof) {
-	while (nof!= 0) {
-		__asm("NOP");
-		nof--;
-	}
-}
-
-void long_delay(volatile uint32_t nof) {
-    for (int i = 0; i < 100; i++)
-        delay(nof);
-}
 
 
 /*----------------------------------------------------------------------------
@@ -178,6 +173,11 @@ void tAudio(void *argument)
 	bool localRunFinished = false;
 	int currNote = 0;
 	
+	while (1)
+	{
+		audioConnEst();
+	}
+	
 	for (;;) 
 	{
 		osSemaphoreAcquire(tAudioControlSem, osWaitForever);
@@ -220,21 +220,13 @@ int main (void) {
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS
-	osThreadNew(tBrain, NULL, NULL);
-	osThreadNew(tMotorControl, NULL, NULL);
-	osThreadNew(tLED, NULL, NULL);
-	osThreadNew(tAudio, NULL, NULL);
-	//osKernelStart();                      // Start thread execution
+	//osThreadNew(tBrain, NULL, &highPriority);
+	//osThreadNew(tMotorControl, NULL, NULL);
+	//osThreadNew(tLED, NULL, &lowPriority);
+	osThreadNew(tAudio, NULL, &lowPriority);
+	osKernelStart();                      // Start thread execution
 	
-	for (;;) {
-		audioConnEst();
-		/*while (1) {
-        for (int i = 0; i < 6; i++) {
-            TPM0->MOD = FREQUENCY_TO_MOD(musical_notes[i]);          // I want a frequency corresponding to a musical note (set MOD to do it)
-            TPM0_C2V = (FREQUENCY_TO_MOD(musical_notes[i])/ 2);     // to mantain 50% Duty Cycle
-					long_delay(0xFFFF);
-        }
-	}
-}*/
+	while (1) {
+		
 	}
 }

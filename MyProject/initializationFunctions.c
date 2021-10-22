@@ -130,9 +130,9 @@ void initBuzzer(void)
 
     // Enable TPM0
     SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
-    // SIM->SOPT2 (common Clock Source) already established in initMotors
-	  //SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM0's TPMSRC field
-    //SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM0 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
+    //SIM->SOPT2; //(common Clock Source) already established in initMotors
+	  SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM0's TPMSRC field
+    SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM0 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
 
     /* set MOD value
      * 48Mhz Clock / 128 Prescalar = effective 375000Hz Clock (slower)
