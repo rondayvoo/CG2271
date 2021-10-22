@@ -29,7 +29,6 @@ osSemaphoreId_t tMotorControlSem;
 osSemaphoreId_t tLEDControlSem;
 osSemaphoreId_t tAudioControlSem;
 
-
 /*----------------------------------------------------------------------------
  * UART
  *---------------------------------------------------------------------------*/
@@ -148,22 +147,62 @@ void tMotorControl(void *argument)
 	}
 }
 
+void tRedLED(void *argument)
+{
+	for (;;)
+	{
+		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
+		
+		if (currMvState == STOP)
+		{
+			redLedOff();
+			redBlink(250);
+		}
+			
+		else
+		{
+			redLedOff();
+			redBlink(500);
+		}
+		
+		osSemaphoreRelease(tLEDControlSem);
+	}
+}
+
+void tGreenLED(void *argument)
+{
+	osSemaphoreAcquire(tLEDControlSem, osWaitForever);
+	
+	for (;;)
+	{
+		if (currMvState == STOP)
+			greenLedOn();
+		else
+		{
+			greenLedOff();
+			greenLedRunning();
+		}
+	}
+	
+	osSemaphoreRelease(tLEDControlSem);
+}
+
 void tLED(void *argument)
 {
 	for (;;) 
 	{
 		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
-		if (currMvState == STOP)
+		
+		if (isConnected)
 		{
-			greenLedOn();
-			redBlink(250);
+			greenLedTwoBlinks();
+			osThreadNew(tRedLED, NULL, &lowPriority);
+			osThreadNew(tGreenLED, NULL, &lowPriority);
+			osSemaphoreRelease(tLEDControlSem);
+			osThreadSuspend(tLED);
 		}
 		
-		else
-		{
-			greenLedRunning();
-			redBlink(500);
-		}
+		osSemaphoreRelease(tLEDControlSem);
 	}
 }
 
@@ -220,9 +259,9 @@ int main (void) {
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS
-	//osThreadNew(tBrain, NULL, &highPriority);
-	//osThreadNew(tMotorControl, NULL, NULL);
-	//osThreadNew(tLED, NULL, &lowPriority);
+	osThreadNew(tBrain, NULL, &highPriority);
+	osThreadNew(tMotorControl, NULL, NULL);
+	osThreadNew(tLED, NULL, &lowPriority);
 	osThreadNew(tAudio, NULL, &lowPriority);
 	osKernelStart();                      // Start thread execution
 	
