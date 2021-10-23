@@ -73,7 +73,6 @@ void tBrain(void *argument)
 			case ESP32_MISC_CONNECTED:
 			{
 				isConnected = true;
-				osSemaphoreRelease(tAudioControlSem);
 				rx_data = ESP32_MISC_RESERVED;
 				break;
 			}
@@ -151,8 +150,6 @@ void tRedLED(void *argument)
 {
 	for (;;)
 	{
-		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
-		
 		if (currMvState == STOP)
 		{
 			redLedOff();
@@ -164,8 +161,6 @@ void tRedLED(void *argument)
 			redLedOff();
 			redBlink(500);
 		}
-		
-		osSemaphoreRelease(tLEDControlSem);
 	}
 }
 
@@ -173,8 +168,6 @@ void tGreenLED(void *argument)
 {
 	for (;;)
 	{
-		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
-		
 		if (currMvState == STOP)
 			greenLedOn();
 		else
@@ -182,8 +175,6 @@ void tGreenLED(void *argument)
 			greenLedOff();
 			greenLedRunning();
 		}
-		
-		osSemaphoreRelease(tLEDControlSem);
 	}
 }
 
@@ -191,8 +182,6 @@ void tLED(void *argument)
 {
 	for (;;) 
 	{
-		osSemaphoreAcquire(tLEDControlSem, osWaitForever);
-		
 		if (isConnected)
 		{
 			greenLedTwoBlinks();
@@ -201,8 +190,6 @@ void tLED(void *argument)
 			osSemaphoreRelease(tLEDControlSem);
 			osThreadSuspend(tLED);
 		}
-		
-		osSemaphoreRelease(tLEDControlSem);
 	}
 }
 
@@ -219,7 +206,6 @@ void tAudio(void *argument)
 	
 	for (;;) 
 	{
-		osSemaphoreAcquire(tAudioControlSem, osWaitForever);
 		if (isConnected && !localIsConnected)
 		{
 			audioConnEst();
@@ -253,7 +239,7 @@ int main (void) {
 	initUART2(BAUD_RATE);
 	
 	/* ----------------- Semaphores ----------------- */
-	tBrainSem = osSemaphoreNew(1,0,NULL);
+	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
 	tAudioControlSem = osSemaphoreNew(1,0,NULL);
 	
