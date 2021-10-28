@@ -141,7 +141,7 @@ void initBuzzer(void)
 
 void initUltrasonic (void) 
 {
-	/***** Ultrasonic Trigger *****/
+	/***************************** Ultrasonic Trigger *****************************/
 	SIM->SCGC5 |= SIM_SCGC5_PORTA_MASK;                     // Enable PortA clocking
 	PORTA->PCR[ULTRASONIC_TRIGGER] &= ~PORT_PCR_MUX_MASK; 
 	PORTA->PCR[ULTRASONIC_TRIGGER] |= PORT_PCR_MUX(1);      // GPIO, for PIT/Ultrasonic Trigger
@@ -158,13 +158,17 @@ void initUltrasonic (void)
 	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;    // Enable PIT Interrupts
 	NVIC_EnableIRQ(PIT_IRQn);
 	
-	/***** Ultrasonic Echo *****/
+	/***************************** Ultrasonic Echo *****************************/
 	SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;                     // Enable PortB clocking
 	PORTB->PCR[ULTRASONIC_ECHO] &= ~PORT_PCR_MUX_MASK;      
 	PORTB->PCR[ULTRASONIC_ECHO] |= PORT_PCR_MUX(3);         // TPM2_CH0, Ultrasonic Echo
+  SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;                      // Enable TPM2
 	
-	// Enable TPM2
-  SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;
+	// Following two lines MUST BE set only when LPTPM counter is disabled (before CMOD is activated)
+	// Following two lines can only be set AFTER TPM2 is enabled (doing otherwise will throw hard fault error)
+  TPM2->CONF |= TPM_CONF_CROT(1);    // Counter reloaded to 0 on every rising edge
+	TPM2->CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
+	
   //SIM->SOPT2; //(common Clock Source) already established in initMotors
 	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM2's TPMSRC field
   SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM2 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
@@ -174,13 +178,9 @@ void initUltrasonic (void)
   TPM2->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
   TPM2->SC &= ~(TPM_SC_CPWMS_MASK);
 	
-	// Input Capture Mode on FALLING edge
+	// set Input Capture Mode on FALLING edge
 	TPM2_C0SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
 	TPM2_C0SC |= ( TPM_CnSC_ELSB(1) );
-	
-	// For Ultrasonic Echo
-	TPM2_CONF |= TPM_CONF_CROT(1);    // Counter reloaded to 0 on every rising edge
-	TPM2_CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
 	
 	// TPM2 Interrupts (triggered on falling edge)
 	TPM2_C0SC |= TPM_CnSC_CHIE(1);    // Enable Channel 0 interrupts on TPM2
