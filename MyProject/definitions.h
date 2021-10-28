@@ -21,13 +21,13 @@
 #define GREEN_LED_8 6               //PTD6
 
 /* --------------------------- Motors -----------------------------------*/
-#define LEFT_MOTOR_FWD 0        //PTB0 - TPM1_CH0
-#define LEFT_MOTOR_RVS 1        //PTB1 - TPM1_CH1
-#define RIGHT_MOTOR_FWD 2       //PTB2 - TPM2_CH0
-#define RIGHT_MOTOR_RVS 3       //PTB3 - TPM2_CH1
+#define LEFT_MOTOR_FWD 0        //PTD0 - TPM0_CH0
+#define LEFT_MOTOR_RVS 4        //PTA4 - TPM0_CH1
+#define RIGHT_MOTOR_FWD 2       //PTD2 - TPM0_CH2
+#define RIGHT_MOTOR_RVS 3       //PTD3 - TPM0_CH3
 
 /* --------------------------- Buzzer/Audio  -----------------------------------*/
-#define BUZZER 29               //PTE29 - TPM0_CH2
+#define BUZZER 20               //PTE20 - TPM1_CH0
 #define FREQUENCY_TO_MOD(x) (375000 / (x))
 #define SONGCONNEST_NOTE_COUNT 32
 #define SONGMAIN_NOTE_COUNT 15
@@ -43,7 +43,8 @@
 #define C5 523
 
 /* --------------------------- Ultrasound  -----------------------------------*/
-
+#define ULTRASONIC_TRIGGER 2  //PTA2, PIT (TTL Input, to trigger measurement)
+#define ULTRASONIC_ECHO 2     //PTB2 TPM2_CH0 (TTL Output, pulse proportional to distance)
 
 /* --------------------------- UART/ESP32  -----------------------------------*/
 #define BAUD_RATE 9600

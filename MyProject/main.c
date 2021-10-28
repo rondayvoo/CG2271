@@ -3,6 +3,7 @@
 #include "movementFunctions.h"
 #include "audioFunctions.h"
 #include "queueFunctions.h"
+#include "ultrasonicFunctions.h"
 #include "initializationFunctions.h"
 
 /*----------------------------------------------------------------------------
@@ -30,7 +31,7 @@ osSemaphoreId_t tLEDControlSem;
 osSemaphoreId_t tAudioControlSem;
 
 /*----------------------------------------------------------------------------
- * UART
+ * UART Interrupt
  *---------------------------------------------------------------------------*/
 
 void UART2_IRQHandler(void) 
@@ -56,6 +57,29 @@ void UART2_IRQHandler(void)
 			Q_Enqueue(&Rx_Q, UART2->D);
 		}
 	}
+}
+
+/*----------------------------------------------------------------------------
+ * Ultrasonic Interrupts
+ *---------------------------------------------------------------------------*/
+
+void PIT_IRQHandler (void)
+{
+	NVIC_ClearPendingIRQ(PIT_IRQn);
+	PTA->PTOR |= MASK(ULTRASONIC_TRIGGER);      // toggle Ultrasonic Trigger
+	PIT->CHANNEL[0].TFLG &= PIT_TFLG_TIF_MASK;  // clear Interrupt Request flag for Channel
+}
+
+void TPM2_IRQHandler(void)
+{
+	NVIC_ClearPendingIRQ(TPM2_IRQn);
+	
+	if (TPM2_C0V <= 0x100) {
+		moveStop();
+	}
+	
+	// clear Channel Flag
+	TPM2_STATUS &= ~TPM_STATUS_CH0F_MASK;
 }
 
 /*----------------------------------------------------------------------------
@@ -212,8 +236,7 @@ void tAudio(void *argument)
 	bool localRunFinished = false;
 	int currNote = 0;
 	
-	while (1)
-	{
+	while (1) {
 		audioConnEst();
 	}
 	
@@ -250,6 +273,7 @@ int main (void) {
 	initLED();
 	initMotors();
 	initBuzzer();
+	initUltrasonic();
 	initUART2(BAUD_RATE);
 	
 	/* ----------------- Semaphores ----------------- */
@@ -263,6 +287,8 @@ int main (void) {
 	osThreadNew(tMotorControl, NULL, NULL);
 	osThreadNew(tLED, NULL, &lowPriority);
 	osThreadNew(tAudio, NULL, &lowPriority);
-	osKernelStart();                      // Start thread execution
-	while (1) {}
+	//osKernelStart();                      // Start thread execution
+	while (1) {
+		startUltrasonic();
+	}
 }

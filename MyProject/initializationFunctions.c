@@ -63,60 +63,46 @@ void initLED(void)
 
 void initMotors(void) 
 {
-	//Enable clock for Port B
-	SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
+	//Enable clock for Port A and D
+	SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
+	SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
 	
-	//Configure to be mode 3: TPM1_CH0
-	PORTB->PCR[LEFT_MOTOR_FWD] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[LEFT_MOTOR_FWD] |= PORT_PCR_MUX(3);
+	// Configure all to Timer
+	PORTD->PCR[LEFT_MOTOR_FWD] &= ~PORT_PCR_MUX_MASK;
+	PORTD->PCR[LEFT_MOTOR_FWD] |= PORT_PCR_MUX(4);
+	PORTA->PCR[LEFT_MOTOR_RVS] &= ~PORT_PCR_MUX_MASK;
+	PORTA->PCR[LEFT_MOTOR_RVS] |= PORT_PCR_MUX(3);
+	PORTD->PCR[RIGHT_MOTOR_FWD] &= ~PORT_PCR_MUX_MASK;
+	PORTD->PCR[RIGHT_MOTOR_FWD] |= PORT_PCR_MUX(4);
+	PORTD->PCR[RIGHT_MOTOR_RVS] &= ~PORT_PCR_MUX_MASK;
+	PORTD->PCR[RIGHT_MOTOR_RVS] |= PORT_PCR_MUX(4);
 	
-	//Configure to be mode 3: TPM1_CH1
-	PORTB->PCR[LEFT_MOTOR_RVS] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[LEFT_MOTOR_RVS] |= PORT_PCR_MUX(3);
-	
-	//Configure to be mode 3: TPM2_CH0
-	PORTB->PCR[RIGHT_MOTOR_FWD] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[RIGHT_MOTOR_FWD] |= PORT_PCR_MUX(3);
-	
-	//Configure to be mode 3: TPM2_CH1
-	PORTB->PCR[RIGHT_MOTOR_RVS] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[RIGHT_MOTOR_RVS] |= PORT_PCR_MUX(3);
-	
-	//Enable clock for TPM1 module
-	SIM->SCGC6 |= SIM_SCGC6_TPM1_MASK;
-	
-	//Enable clock for TPM2 module
-	SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;
+	//Enable clock for TPM0 module
+	SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
 	
 	//Select MCGFLLCLK for system
 	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK;
 	SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);
 	
-	//Set both timers to 50Hz
-	TPM1->MOD = 7500;
-	TPM2->MOD = 7500;
+	//Set timers to 50Hz
+	TPM0->MOD = 7500;
 	
 	//Set LPTPM counter to increment on every counter clock
 	//Set prescaler to 1/128
 	//Select up-counting mode
-	TPM1->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK));
-	TPM1->SC |= ((TPM_SC_CMOD(1)) | (TPM_SC_PS(7)));
-	TPM1->SC &= ~(TPM_SC_CPWMS_MASK);
+	TPM0->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK));
+	TPM0->SC |= ((TPM_SC_CMOD(1)) | (TPM_SC_PS(7)));
+	TPM0->SC &= ~(TPM_SC_CPWMS_MASK);
 	
-	TPM2->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK));
-	TPM2->SC |= ((TPM_SC_CMOD(1)) | (TPM_SC_PS(7)));
-	TPM2->SC &= ~(TPM_SC_CPWMS_MASK);
-	
-	//Select edge-aligned PWM with high-true pulses, for TPM1/TPM2, CH0/CH1
-	TPM1_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
-	TPM1_C0SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
-	TPM1_C1SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
-	TPM1_C1SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
-	
-	TPM2_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
-	TPM2_C0SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
-	TPM2_C1SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
-	TPM2_C1SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
+	//Select edge-aligned PWM with high-true pulses, for TPM0_CH0, TPM0_CH1, TPM0_CH2, TPM0_CH3
+	TPM0_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+	TPM0_C0SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
+	TPM0_C1SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+	TPM0_C1SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
+	TPM0_C2SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+	TPM0_C2SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
+	TPM0_C3SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+	TPM0_C3SC |= (TPM_CnSC_ELSB(1)) | (TPM_CnSC_MSB(1));
 }
 
 void initBuzzer(void)
@@ -124,33 +110,81 @@ void initBuzzer(void)
     // Enable PortE
     SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
 
-	  // Configure PORTE29 (TPM0_CH2) using MUX
+	  // Configure PORTE20 (TPM1_CH0) using MUX
     PORTE->PCR[BUZZER] &= ~PORT_PCR_MUX_MASK;
     PORTE->PCR[BUZZER] |= PORT_PCR_MUX(3);
 
-    // Enable TPM0
-    SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
+    // Enable TPM1
+    SIM->SCGC6 |= SIM_SCGC6_TPM1_MASK;
     //SIM->SOPT2; //(common Clock Source) already established in initMotors
-	  SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM0's TPMSRC field
-    SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM0 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
+	  SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM1's TPMSRC field
+    SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM1 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
 
     /* set MOD value
      * 48Mhz Clock / 128 Prescalar = effective 375000Hz Clock (slower)
      * I want 50Hz PWM signal and to use Edge-Aligned PWM Signal, hence PWM period = (MOD+1) cycles
      * 375000Hz / 7500 (MOD) gives 50Hz
      */
-    TPM0->MOD = 7500;
+    TPM1->MOD = 7500;
 
     // Set CMOD (Clock Mode Selection and Prescalar)
-    TPM0->SC &= ~( (TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK) );
-    TPM0->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
+    TPM1->SC &= ~( (TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK) );
+    TPM1->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
 		
 		// Set to Up-Counting mode
-    TPM0->SC &= ~(TPM_SC_CPWMS_MASK);
+    TPM1->SC &= ~(TPM_SC_CPWMS_MASK);
 
-    // Setting Timer Mode (Edge-aligned PWM, high true pulses) for TPM0_CH2
-    TPM0_C2SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
-    TPM0_C2SC |= ( TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1) );
+    // Setting Timer Mode (Edge-aligned PWM, high true pulses) for TPM1_CH0
+    TPM1_C0SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+    TPM1_C0SC |= ( TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1) );
+}
+
+void initUltrasonic (void) 
+{
+	/***** Ultrasonic Trigger *****/
+	SIM->SCGC5 |= SIM_SCGC5_PORTA_MASK;                     // Enable PortA clocking
+	PORTA->PCR[ULTRASONIC_TRIGGER] &= ~PORT_PCR_MUX_MASK; 
+	PORTA->PCR[ULTRASONIC_TRIGGER] |= PORT_PCR_MUX(1);      // GPIO, for PIT/Ultrasonic Trigger
+	PTA->PDDR |= MASK(ULTRASONIC_TRIGGER);                  // Set PTA2 to Output(1)
+	
+	// PIT Setup for Channel 0
+	SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;           // Enable clocking to PIT
+	PIT->MCR &= ~PIT_MCR_MDIS_MASK;             // Enable clock for standard PIT timers
+	PIT->MCR |= PIT_MCR_FRZ_MASK;               // Timer stops during debugging   
+	
+	// PIT is clocked by Bus Clock (24Mhz)
+	// PIT frequency is 1Hz (period 1s), LDVAL = (period / clock period) - 1
+	PIT->CHANNEL[0].LDVAL |= 0x16E3600;             // Countdown from this value
+	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;    // Enable PIT Interrupts
+	NVIC_EnableIRQ(PIT_IRQn);
+	
+	/***** Ultrasonic Echo *****/
+	SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;                     // Enable PortB clocking
+	PORTB->PCR[ULTRASONIC_ECHO] &= ~PORT_PCR_MUX_MASK;      
+	PORTB->PCR[ULTRASONIC_ECHO] |= PORT_PCR_MUX(3);         // TPM2_CH0, Ultrasonic Echo
+	
+	// Enable TPM2
+  SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;
+  //SIM->SOPT2; //(common Clock Source) already established in initMotors
+	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM2's TPMSRC field
+  SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM2 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
+	
+	TPM2->MOD = 7500;                    
+  TPM2->SC &= ~( (TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK) );
+  TPM2->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
+  TPM2->SC &= ~(TPM_SC_CPWMS_MASK);
+	
+	// Input Capture Mode on FALLING edge
+	TPM2_C0SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
+	TPM2_C0SC |= ( TPM_CnSC_ELSB(1) );
+	
+	// For Ultrasonic Echo
+	TPM2_CONF |= TPM_CONF_CROT(1);    // Counter reloaded to 0 on every rising edge
+	TPM2_CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
+	
+	// TPM2 Interrupts (triggered on falling edge)
+	TPM2_C0SC |= TPM_CnSC_CHIE(1);    // Enable Channel 0 interrupts on TPM2
+	NVIC_EnableIRQ(TPM2_IRQn);        // Enable TPM2 Interrupts on NVIC
 }
 
 void initUART2(uint32_t baud_rate) {
