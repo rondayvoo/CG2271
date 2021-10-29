@@ -5,7 +5,12 @@ int songConnEst[SONGCONNEST_NOTE_COUNT] = {
 As4, As4, 0, 0, As4, As4, 0, 0, As4, As4, 0, 0, As4, As4, 0, 0,
 As4, As4, As4, B4, B4, B4, F4 * 2, F4 * 2, As4, As4, 0, 0, As4, As4, 0, 0
 };
-int songMain[0] = {};
+int songMain[SONGMAIN_NOTE_COUNT] = {
+A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4, A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4,
+C5, B4, G4, C5, C5, B4, G4, G4, C5, B4, G4, D4 * 2, D4 * 2, B4, G4, G4, 
+A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4, A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4,
+A4, A4, 0, A4, B4, 0, B4, 0, C5, C5, 0, C5, B4, 0, B4, 0
+};
 int songRunFin[0] = {};
 	
 static void delay(volatile uint32_t nof) {
@@ -17,6 +22,8 @@ static void delay(volatile uint32_t nof) {
 
 void audioStop(void)
 {
+	TPM1->MOD = 0;
+	TPM1_C0V = 0;
 }
 
 void audioConnEst(void)
@@ -34,7 +41,7 @@ void audioSong(int note)
 {
 	TPM1->MOD = songMain[note];
 	TPM1_C0V = songMain[note] / 2;
-	osDelay(100);
+	osDelay(90);
 }
 
 void audioRunFin(void)

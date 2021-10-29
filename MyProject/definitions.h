@@ -30,7 +30,7 @@
 #define BUZZER 20               //PTE20 - TPM1_CH0
 #define FREQUENCY_TO_MOD(x) (375000 / (x))
 #define SONGCONNEST_NOTE_COUNT 32
-#define SONGMAIN_NOTE_COUNT 15
+#define SONGMAIN_NOTE_COUNT 64
 #define SONGRUNFIN_NOTE_COUNT 15
 #define C4 261
 #define D4 293
