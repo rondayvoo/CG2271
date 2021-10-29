@@ -154,7 +154,7 @@ void initUltrasonic (void)
 	
 	// PIT is clocked by Bus Clock (24Mhz)
 	// PIT frequency is 1Hz (period 1s), LDVAL = (period / clock period) - 1
-	PIT->CHANNEL[0].LDVAL |= 0x16E3600;             // Countdown from this value
+	PIT->CHANNEL[0].LDVAL |= 479;             // Countdown from this value
 	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;    // Enable PIT Interrupts
 	NVIC_EnableIRQ(PIT_IRQn);
 	
@@ -167,7 +167,7 @@ void initUltrasonic (void)
 	// Following two lines MUST BE set only when LPTPM counter is disabled (before CMOD is activated)
 	// Following two lines can only be set AFTER TPM2 is enabled (doing otherwise will throw hard fault error)
   TPM2->CONF |= TPM_CONF_CROT(1);    // Counter reloaded to 0 on every rising edge
-	TPM2->CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
+	//TPM2->CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
 	
   //SIM->SOPT2; //(common Clock Source) already established in initMotors
 	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM2's TPMSRC field

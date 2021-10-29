@@ -412,6 +412,11 @@
               <FileType>1</FileType>
               <FilePath>.\queueFunctions.c</FilePath>
             </File>
+            <File>
+              <FileName>ultrasonicFunctions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ultrasonicFunctions.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

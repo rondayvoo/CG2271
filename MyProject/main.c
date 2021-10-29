@@ -74,12 +74,20 @@ void TPM2_IRQHandler(void)
 {
 	NVIC_ClearPendingIRQ(TPM2_IRQn);
 	
-	if (TPM2_C0V <= 0x100) {
+	if (TPM2_C0V <= 500 || !(TPM_STATUS_TOF_MASK & TPM2_STATUS)) 
+	{
 		moveStop();
+		TPM2_STATUS |= TPM_STATUS_TOF_MASK;
+	}
+	
+	else 
+	{
+		moveForward(100);
 	}
 	
 	// clear Channel Flag
 	TPM2_STATUS &= ~TPM_STATUS_CH0F_MASK;
+	TPM2_C0SC |= TPM_CnSC_CHF(1);
 }
 
 /*----------------------------------------------------------------------------
@@ -262,19 +270,23 @@ int main (void) {
 	initUltrasonic();
 	initUART2(BAUD_RATE);
 	
+	startUltrasonic();
+	
+	while (1) {
+		
+	}
+	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
 	tAudioControlSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
-	osKernelInitialize();    // Initialize CMSIS-RTOS
-	osThreadNew(tBrain, NULL, &highPriority);
-	osThreadNew(tMotorControl, NULL, NULL);
-	osThreadNew(tLED, NULL, &lowPriority);
-	osThreadNew(tAudio, NULL, &lowPriority);
+	//osKernelInitialize();    // Initialize CMSIS-RTOS
+	//osThreadNew(tBrain, NULL, &highPriority);
+	//osThreadNew(tMotorControl, NULL, NULL);
+	//osThreadNew(tLED, NULL, &lowPriority);
+	//osThreadNew(tAudio, NULL, &lowPriority);
 	//osKernelStart();                      // Start thread execution
-	while (1) {
-		startUltrasonic();
-	}
+	
 }
