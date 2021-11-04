@@ -11,7 +11,8 @@
  *---------------------------------------------------------------------------*/
 
 volatile uint8_t rx_data = ESP32_MISC_RESERVED;
-volatile bool isConnected = false;
+bool isConnected = false;
+volatile int isWaitingState = 1;
 bool runFinished = false;
 mvState currMvState = STOP;
 bool isSelfDriving = false;
@@ -66,26 +67,38 @@ void UART2_IRQHandler(void)
 void PIT_IRQHandler (void)
 {
 	NVIC_ClearPendingIRQ(PIT_IRQn);
+	isWaitingState ^= 1;
+	
+	if (isWaitingState) {
+		PIT->CHANNEL[0].LDVAL = TRIGGER_LDVAL_WAIT;
+	} 
+	
+	else {
+		PIT->CHANNEL[0].LDVAL = TRIGGER_LDVAL_PULSE;
+	}
+	
 	PTA->PTOR |= MASK(ULTRASONIC_TRIGGER);      // toggle Ultrasonic Trigger
 	PIT->CHANNEL[0].TFLG &= PIT_TFLG_TIF_MASK;  // clear Interrupt Request flag for Channel
 }
 
+// triggered on ECHO falling edge
 void TPM2_IRQHandler(void)
 {
-	NVIC_ClearPendingIRQ(TPM2_IRQn);
+	NVIC_ClearPendingIRQ(TPM2_IRQn);  
 	
-	if (TPM2_C0V <= 500 || !(TPM_STATUS_TOF_MASK & TPM2_STATUS)) 
-	{
+	// no obstacles within ?cm
+	// timer has not overflowed
+	if (TPM2_C0V <= 1000 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
 		moveStop();
-		TPM2_STATUS |= TPM_STATUS_TOF_MASK;
 	}
 	
 	else 
 	{
 		moveForward(100);
+		TPM2_STATUS &= ~TPM_STATUS_TOF_MASK;
 	}
 	
-	// clear Channel Flag
+	// clear Channel Flag (need to clear for both STATUS and CnSC)
 	TPM2_STATUS &= ~TPM_STATUS_CH0F_MASK;
 	TPM2_C0SC |= TPM_CnSC_CHF(1);
 }
@@ -273,7 +286,7 @@ int main (void) {
 	startUltrasonic();
 	
 	while (1) {
-		
+		//moveForward(100);
 	}
 	
 	/* ----------------- Semaphores ----------------- */
@@ -288,5 +301,4 @@ int main (void) {
 	//osThreadNew(tLED, NULL, &lowPriority);
 	//osThreadNew(tAudio, NULL, &lowPriority);
 	//osKernelStart();                      // Start thread execution
-	
 }

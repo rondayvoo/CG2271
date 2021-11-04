@@ -2,9 +2,12 @@
 
 void startUltrasonic (void)
 {
-	// Begin pulsing the Ultrasonic Trigger @ 1Hz
-	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TEN_MASK;  
+	// Begin pulsing Ultrasonic TRIGGER
+	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TEN_MASK;
+  NVIC_SetPriority(PIT_IRQn, 1);	
+	NVIC_EnableIRQ(PIT_IRQn);
 	
 	// Ultrasonic Echo
-	TPM2_C0SC |= TPM_CnSC_CHIE(1);  // enable Channel Interrupts
+	NVIC_SetPriority(TPM2_IRQn, 0);
+	NVIC_EnableIRQ(TPM2_IRQn);
 }

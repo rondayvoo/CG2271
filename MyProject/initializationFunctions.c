@@ -153,27 +153,28 @@ void initUltrasonic (void)
 	PIT->MCR |= PIT_MCR_FRZ_MASK;               // Timer stops during debugging   
 	
 	// PIT is clocked by Bus Clock (24Mhz)
-	// PIT frequency is 1Hz (period 1s), LDVAL = (period / clock period) - 1
-	PIT->CHANNEL[0].LDVAL |= 479;             // Countdown from this value
-	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;    // Enable PIT Interrupts
+	// PIT frequency detemermined by LDVAL = (PIT period / clock period) - 1
+	// 'Activation' phase of PIT is HALF of PIT frequency, need to adjust accordingly
+	PIT->CHANNEL[0].LDVAL = TRIGGER_LDVAL_PULSE;              // Countdown from this value
+	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;             // Enable PIT Interrupts
 	NVIC_EnableIRQ(PIT_IRQn);
 	
 	/***************************** Ultrasonic Echo *****************************/
 	SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;                     // Enable PortB clocking
 	PORTB->PCR[ULTRASONIC_ECHO] &= ~PORT_PCR_MUX_MASK;      
 	PORTB->PCR[ULTRASONIC_ECHO] |= PORT_PCR_MUX(3);         // TPM2_CH0, Ultrasonic Echo
+	PORTB->PCR[ULTRASONIC_EXTRGIN] &= ~PORT_PCR_MUX_MASK;      
+	PORTB->PCR[ULTRASONIC_EXTRGIN] |= PORT_PCR_MUX(3);      // EXTRGIN, Ultrasonic Echo
   SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;                      // Enable TPM2
+	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM's TPMSRC field
+  SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
 	
-	// Following two lines MUST BE set only when LPTPM counter is disabled (before CMOD is activated)
+	// Following two lines MUST BE set only when LPTPM counter is disabled (before CMOD is activated, or any write to CNT)
 	// Following two lines can only be set AFTER TPM2 is enabled (doing otherwise will throw hard fault error)
-  TPM2->CONF |= TPM_CONF_CROT(1);    // Counter reloaded to 0 on every rising edge
-	//TPM2->CONF |= TPM_CONF_CSOT(1);    // Counter only start incrementing on rising edge
+	TPM2->CONF |= TPM_CONF_CSOT(1);    // Counter starts incrementing only on ECHO EXTRGIN rising edge
+	TPM2->CONF |= TPM_CONF_CROT(1);    // Counter reset to 0 on every ECHO EXTRGIN rising edge
 	
-  //SIM->SOPT2; //(common Clock Source) already established in initMotors
-	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK; // Clear TPM2's TPMSRC field
-  SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1);    // Set TPM2 to MCGFLLCLK or MCGFLLCLK2 (selecting Clock Source for TPM counter clock
-	
-	TPM2->MOD = 7500;                    
+	TPM2->MOD = 24000;                 // Ultrasonic has max reach of 4m                        
   TPM2->SC &= ~( (TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK) );
   TPM2->SC |= ( (TPM_SC_CMOD(1) | TPM_SC_PS(7)) );
   TPM2->SC &= ~(TPM_SC_CPWMS_MASK);
@@ -181,10 +182,7 @@ void initUltrasonic (void)
 	// set Input Capture Mode on FALLING edge
 	TPM2_C0SC &= ~( (TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK));
 	TPM2_C0SC |= ( TPM_CnSC_ELSB(1) );
-	
-	// TPM2 Interrupts (triggered on falling edge)
-	TPM2_C0SC |= TPM_CnSC_CHIE(1);    // Enable Channel 0 interrupts on TPM2
-	NVIC_EnableIRQ(TPM2_IRQn);        // Enable TPM2 Interrupts on NVIC
+	TPM2_C0SC |= TPM_CnSC_CHIE(1);     // enable Channel Interrupts
 }
 
 void initUART2(uint32_t baud_rate) {
