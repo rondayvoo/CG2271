@@ -43,8 +43,11 @@
 #define C5 523
 
 /* --------------------------- Ultrasound  -----------------------------------*/
-#define ULTRASONIC_TRIGGER 2  //PTA2, PIT (TTL Input, to trigger measurement)
-#define ULTRASONIC_ECHO 2     //PTB2 TPM2_CH0 (TTL Output, pulse proportional to distance)
+#define ULTRASONIC_TRIGGER 2           // PTA2, PIT (TTL Input, to trigger measurement)
+#define ULTRASONIC_ECHO 2              // PTB2 TPM2_CH0 (TTL Output, pulse proportional to distance)
+#define ULTRASONIC_EXTRGIN 8           // PTB8, EXTRGIN (for TPMx_CONF)
+#define TRIGGER_LDVAL_PULSE 240        // for 20 microsecond activation pulse
+#define TRIGGER_LDVAL_WAIT 24000000    // for 2 second wait pulse
 
 /* --------------------------- UART/ESP32  -----------------------------------*/
 #define BAUD_RATE 9600
