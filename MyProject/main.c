@@ -4,6 +4,7 @@
 #include "audioFunctions.h"
 #include "queueFunctions.h"
 #include "ultrasonicFunctions.h"
+#include "selfDriving.h"
 #include "initializationFunctions.h"
 
 /*----------------------------------------------------------------------------
@@ -15,7 +16,8 @@ bool isConnected = false;
 volatile int isWaitingState = 1;
 bool runFinished = false;
 mvState currMvState = STOP;
-bool isSelfDriving = false;
+volatile bool isSelfDriving = false;
+volatile bool objectDetected = false;
 Q_T Tx_Q, Rx_Q;
 
 const osThreadAttr_t highPriority = {
@@ -28,8 +30,6 @@ const osThreadAttr_t lowPriority = {
 
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
-osSemaphoreId_t tLEDControlSem;
-osSemaphoreId_t tAudioControlSem;
 
 /*----------------------------------------------------------------------------
  * UART Interrupt
@@ -40,7 +40,7 @@ void UART2_IRQHandler(void)
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	
 	//IRQ Reciever
-	if (UART2->S1 & UART_S1_RDRF_MASK) 
+	if ((UART2->S1 & UART_S1_RDRF_MASK) && !isSelfDriving) 
 	{
 		// received a character
 		// RDRF cleared when reading from UART2->D
@@ -90,6 +90,7 @@ void TPM2_IRQHandler(void)
 	// timer has not overflowed
 	if (TPM2_C0V <= 1000 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
 		//moveStop();
+		objectDetected = true;
 	}
 	
 	else 
@@ -157,6 +158,12 @@ void tBrain(void *argument)
 				break;
 			}
 			
+			case ESP32_MODE_AUTO:
+			{
+				isSelfDriving = true;
+				break;
+			}
+			
 			default:
 				break;
 		}
@@ -167,26 +174,37 @@ void tMotorControl(void *argument)
 {
 	for (;;) 
 	{
-		osSemaphoreAcquire(tMotorControlSem, osWaitForever);
-		switch (currMvState)
+		if (!isSelfDriving) 
 		{
-			case STOP:
-				moveStop();
-				break;
-			case FORWARD:
-				moveForward(100);
-				break;
-			case BACKWARD:
-				moveBackward(100);
-				break;
-			case LEFT:
-				moveLeft(100);
-				break;
-			case RIGHT:
-				moveRight(100);
-				break;
-			default:
-				break;
+			osSemaphoreAcquire(tMotorControlSem, osWaitForever);
+			
+			switch (currMvState)
+			{
+				case STOP:
+					moveStop();
+					break;
+				case FORWARD:
+					moveForward(100);
+					break;
+				case BACKWARD:
+					moveBackward(100);
+					break;
+				case LEFT:
+					moveLeft(100);
+					break;
+				case RIGHT:
+					moveRight(100);
+					break;
+				default:
+					break;
+			}
+		}
+		
+		else 
+		{
+			driveSelf();
+			isSelfDriving = false;
+			runFinished = true;
 		}
 	}
 }
@@ -253,10 +271,10 @@ void tAudio(void *argument)
 			localIsConnected = true;
 		}
 		
-		else if (runFinished && !localRunFinished)
+		else if (runFinished)
 		{
 			audioRunFin();
-			localRunFinished = true;
+			runFinished = false;
 		}
 		
 		else if (isConnected)
@@ -279,12 +297,10 @@ int main (void) {
 	initBuzzer();
 	initUltrasonic();
 	initUART2(BAUD_RATE);	
-	startUltrasonic();
 	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
-	tAudioControlSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS

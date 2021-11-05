@@ -417,6 +417,11 @@
               <FileType>1</FileType>
               <FilePath>.\ultrasonicFunctions.c</FilePath>
             </File>
+            <File>
+              <FileName>selfDriving.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\selfDriving.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -1,19 +1,23 @@
-#include "movementFunctions.c"
+#include "selfDriving.h"
+#include "movementFunctions.h"
+#include "ultrasonicFunctions.h"
 #include "definitions.h"
 
+extern volatile bool objectDetected;
+
 void driveSelf() {
+	startUltrasonic();
+	
 	moveForward(100);
-	// if the ultrasonic sensor detects object
-	// stop
-	moveStop();
+	while (!objectDetected);
+	stopUltrasonic();
+	objectDetected = false;
 
 	moveLeft(100);
 	osDelay(1000);
-	moveStop();
 
 	moveForward(100);
 	osDelay(1000);
-	moveStop();
 
 	moveRight(100);
 	osDelay(1000);
@@ -21,37 +25,27 @@ void driveSelf() {
 
 	moveForward(100);
 	osDelay(1000);
-	moveStop();
 
 	moveRight(100);
 	osDelay(1000);
-	moveStop();
 
 	moveForward(100);
 	osDelay(1000);
-	moveStop();
 
 	moveRight(100);
 	osDelay(1000);
-	moveStop();
 
 	moveForward(100);
 	osDelay(1000);
-	moveStop();
-
-	moveRight(100);
-	osDelay(1000);
-	moveStop();
-
-	moveForward(100);
-	osDelay(1000);
-	moveStop();
 
 	moveLeft(100);
 	osDelay(1000);
-	moveStop();
+	
+	startUltrasonic();
 
 	moveForward(100);
-	osDelay(1000);
+	while (!objectDetected);
+	stopUltrasonic();
+	objectDetected = false;
 	moveStop();
 }

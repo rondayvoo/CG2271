@@ -11,3 +11,12 @@ void startUltrasonic (void)
 	NVIC_SetPriority(TPM2_IRQn, 0);
 	NVIC_EnableIRQ(TPM2_IRQn);
 }
+
+void stopUltrasonic (void)
+{
+	// Ultrasonic TRIGGER
+	NVIC_DisableIRQ(PIT_IRQn);
+	
+	// Ultrasonic Echo
+	NVIC_DisableIRQ(TPM2_IRQn);
+}
