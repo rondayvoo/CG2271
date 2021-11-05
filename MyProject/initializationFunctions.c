@@ -188,13 +188,22 @@ void initUltrasonic (void)
 void initUART2(uint32_t baud_rate) {
 	uint32_t divisor, bus_clock;
 	
-	//Enable clock for UART2 and Port E
+	//Enable clock for UART2 and Port E and Port C
 	SIM->SCGC4 |= SIM_SCGC4_UART2_MASK;
-	SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;  
+	SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
+  SIM->SCGC5 |= SIM_SCGC5_PORTC_MASK;  
+	
+	// Configure GPIO for Port C Pin 1 (always high GPIO)
+	PORTC->PCR[UART2_POWER_FROM_KEIL] &= ~PORT_PCR_MUX_MASK;
+	PORTC->PCR[UART2_POWER_FROM_KEIL] |= PORT_PCR_MUX(1);
 	
 	//Configure mode 4 for Port E Pin 23: UART2_RX
 	PORTE->PCR[UART_RX] &= ~PORT_PCR_MUX_MASK;
 	PORTE->PCR[UART_RX] |= PORT_PCR_MUX(4);
+	
+	// Set GPIO to Output
+	PTC->PDDR |= MASK(UART2_POWER_FROM_KEIL);
+	PTC->PSOR |= MASK(UART2_POWER_FROM_KEIL);    // drive HIGH
 	
 	//Turn off RX and TX, disable UART
 	UART2->C2 &= ~((UART_C2_TE_MASK) | (UART_C2_RE_MASK));

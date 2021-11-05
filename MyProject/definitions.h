@@ -50,6 +50,7 @@
 #define TRIGGER_LDVAL_WAIT 24000000    // for 2 second wait pulse
 
 /* --------------------------- UART/ESP32  -----------------------------------*/
+#define UART2_POWER_FROM_KEIL 1     //PTC1
 #define BAUD_RATE 9600
 #define UART_TX 22                  //PTE22 - TX
 #define UART_RX 23                  //PTE23 - RX

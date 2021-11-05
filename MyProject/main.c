@@ -89,12 +89,12 @@ void TPM2_IRQHandler(void)
 	// no obstacles within ?cm
 	// timer has not overflowed
 	if (TPM2_C0V <= 1000 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
-		moveStop();
+		//moveStop();
 	}
 	
 	else 
 	{
-		moveForward(100);
+		//moveForward(100);
 		TPM2_STATUS &= ~TPM_STATUS_TOF_MASK;
 	}
 	
@@ -211,14 +211,16 @@ void tRedLED(void *argument)
 
 void tGreenLED(void *argument)
 {
+	int currLit = 0;
+	
 	for (;;)
 	{
 		if (currMvState == STOP)
 			greenLedOn();
 		else
 		{
-			greenLedOff();
-			greenLedRunning();
+			greenLedRunning(currLit);
+			currLit = currLit == 7 ? 0 : currLit + 1;
 		}
 	}
 }
@@ -232,8 +234,7 @@ void tLED(void *argument)
 			greenLedTwoBlinks();
 			osThreadNew(tRedLED, NULL, &lowPriority);
 			osThreadNew(tGreenLED, NULL, &lowPriority);
-			osSemaphoreRelease(tLEDControlSem);
-			osThreadSuspend(tLED);
+			return;
 		}
 	}
 }
@@ -243,10 +244,6 @@ void tAudio(void *argument)
 	bool localIsConnected = false;
 	bool localRunFinished = false;
 	int currNote = 0;
-	
-	while (1) {
-		audioConnEst();
-	}
 	
 	for (;;) 
 	{
@@ -262,10 +259,10 @@ void tAudio(void *argument)
 			localRunFinished = true;
 		}
 		
-		else
+		else if (isConnected)
 		{
 			audioSong(currNote);
-			currNote = currNote == SONGMAIN_NOTE_COUNT ? 0 : currNote + 1;
+			currNote = currNote + 1 == SONGMAIN_NOTE_COUNT ? 0 : currNote + 1;
 		}
 	}
 }
@@ -281,13 +278,8 @@ int main (void) {
 	initMotors();
 	initBuzzer();
 	initUltrasonic();
-	initUART2(BAUD_RATE);
-	
+	initUART2(BAUD_RATE);	
 	startUltrasonic();
-	
-	while (1) {
-		//moveForward(100);
-	}
 	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
@@ -295,10 +287,14 @@ int main (void) {
 	tAudioControlSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
-	//osKernelInitialize();    // Initialize CMSIS-RTOS
-	//osThreadNew(tBrain, NULL, &highPriority);
-	//osThreadNew(tMotorControl, NULL, NULL);
-	//osThreadNew(tLED, NULL, &lowPriority);
-	//osThreadNew(tAudio, NULL, &lowPriority);
-	//osKernelStart();                      // Start thread execution
+	osKernelInitialize();    // Initialize CMSIS-RTOS
+	osThreadNew(tBrain, NULL, &highPriority);
+	osThreadNew(tMotorControl, NULL, NULL);
+	osThreadNew(tLED, NULL, &lowPriority);
+	osThreadNew(tAudio, NULL, &lowPriority);
+	osKernelStart();                      // Start thread execution
+	
+	while (1) {
+		//moveForward(100);
+	}
 }

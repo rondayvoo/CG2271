@@ -39,49 +39,65 @@ void greenLedOn(void)
 
 void greenLedTwoBlinks(void)
 {
-	greenLedOn();
-	osDelay(1000);
 	greenLedOff();
-	osDelay(1000);
 	greenLedOn();
-	osDelay(1000);
+	osDelay(200);
 	greenLedOff();
-	osDelay(1000);
+	osDelay(200);
+	greenLedOn();
+	osDelay(200);
+	greenLedOff();
 }
 
-void greenLedRunning(void)
+void greenLedRunning(int currLit)
 {
-	PTC->PSOR |= MASK(GREEN_LED_1);
-	osDelay(1000);
-	PTC->PCOR |= MASK(GREEN_LED_1);
+	greenLedOff();
 	
-	PTC->PSOR |= MASK(GREEN_LED_2);
-	osDelay(1000);
-	PTC->PCOR |= MASK(GREEN_LED_2);
-	
-	PTC->PSOR |= MASK(GREEN_LED_3);
-	osDelay(1000);
-	PTC->PCOR |= MASK(GREEN_LED_3);
-	
-	PTC->PSOR |= MASK(GREEN_LED_4);
-	osDelay(1000);
-	PTC->PCOR |= MASK(GREEN_LED_4);
-	
-	PTA->PSOR |= MASK(GREEN_LED_5);
-	osDelay(1000);
-	PTA->PCOR |= MASK(GREEN_LED_5);
-	
-	PTA->PSOR |= MASK(GREEN_LED_6);
-	osDelay(1000);
-	PTA->PCOR |= MASK(GREEN_LED_6);
-	
-	PTE->PSOR |= MASK(GREEN_LED_7);
-	osDelay(1000);
-	PTE->PCOR |= MASK(GREEN_LED_7);
-	
-	PTD->PSOR |= MASK(GREEN_LED_8);
-	osDelay(1000);
-	PTD->PCOR |= MASK(GREEN_LED_8);
+	switch (currLit) 
+	{
+		case 0:
+			PTC->PSOR |= MASK(GREEN_LED_1);
+			osDelay(200);
+			PTC->PCOR |= MASK(GREEN_LED_1);
+			break;
+		case 1:
+			PTC->PSOR |= MASK(GREEN_LED_2);
+			osDelay(200);
+			PTC->PCOR |= MASK(GREEN_LED_2);
+			break;
+		case 2:
+			PTC->PSOR |= MASK(GREEN_LED_3);
+			osDelay(200);
+			PTC->PCOR |= MASK(GREEN_LED_3);
+			break;
+		case 3:
+			PTC->PSOR |= MASK(GREEN_LED_4);
+			osDelay(200);
+			PTC->PCOR |= MASK(GREEN_LED_4);
+			break;
+		case 4:
+			PTA->PSOR |= MASK(GREEN_LED_5);
+			osDelay(200);
+			PTA->PCOR |= MASK(GREEN_LED_5);
+			break;
+		case 5:
+			PTA->PSOR |= MASK(GREEN_LED_6);
+			osDelay(200);
+			PTA->PCOR |= MASK(GREEN_LED_6);
+			break;
+		case 6:
+			PTE->PSOR |= MASK(GREEN_LED_7);
+			osDelay(200);
+			PTE->PCOR |= MASK(GREEN_LED_7);
+			break;
+		case 7:
+			PTD->PSOR |= MASK(GREEN_LED_8);
+			osDelay(200);
+			PTD->PCOR |= MASK(GREEN_LED_8);
+			break;
+		default:
+			break;
+	}
 }
 
 void redLedOff(void)
@@ -99,4 +115,5 @@ void redBlink(int ms)
 	redLedOn();
 	osDelay(ms);
 	redLedOff();
+	osDelay(ms);
 }
