@@ -3,9 +3,6 @@
 #include "ultrasonicFunctions.h"
 #include "definitions.h"
 
-extern volatile bool objectDetected;
-extern osSemaphoreId_t objectDetectedSem;
-
 /*
 void driveSelf() {
 	objectDetected = false;

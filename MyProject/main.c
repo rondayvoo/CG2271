@@ -4,7 +4,6 @@
 #include "audioFunctions.h"
 #include "queueFunctions.h"
 #include "ultrasonicFunctions.h"
-//#include "selfDriving.h"
 #include "initializationFunctions.h"
 
 /*----------------------------------------------------------------------------
@@ -88,8 +87,8 @@ void TPM2_IRQHandler(void)
 	// no obstacles within ?cm
 	// timer has not overflowed
 	if (TPM2_C0V <= 250 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
-		moveStop();
 		osSemaphoreRelease(objectDetectedSem);
+		moveStop();
 	}
 	
 	else 
@@ -103,13 +102,15 @@ void TPM2_IRQHandler(void)
 	TPM2_C0SC |= TPM_CnSC_CHF(1);
 }
 
-//Self-driving
+/*----------------------------------------------------------------------------
+ * Self-driving
+ *---------------------------------------------------------------------------*/
 
-void driveUntilWall() {
-	startUltrasonic();
+void driveUntilWall(void) {
+	objectDetectedSem = osSemaphoreNew(1,0,NULL);
 	moveForward(100);
 	osSemaphoreAcquire(objectDetectedSem, osWaitForever);
-	stopUltrasonic();
+	//stopUltrasonic();
 }
 
 /*----------------------------------------------------------------------------
@@ -204,6 +205,7 @@ void tMotorControl(void *argument)
 					break;
 				case SELFDRIVING:
 					driveUntilWall();
+					osDelay(500);
 				
 					moveLeft(100);
 					osDelay(600);
@@ -233,6 +235,8 @@ void tMotorControl(void *argument)
 					osDelay(600);
 					
 					driveUntilWall();
+					osDelay(500);
+					
 					currMvState = STOP;
 					runFinished = true;
 					break;
@@ -331,10 +335,11 @@ int main (void) {
 	initUART2(BAUD_RATE);	
 	Q_Init(&Rx_Q);
 	
+	startUltrasonic();
+	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
-	objectDetectedSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS
