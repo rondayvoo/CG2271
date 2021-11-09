@@ -205,37 +205,37 @@ void tMotorControl(void *argument)
 					break;
 				case SELFDRIVING:
 					driveUntilWall();
-					osDelay(500);
+					osDelay(100);
 				
 					moveLeft(100);
-					osDelay(600);
+					osDelay(SELF_DRIVING_LEFT);
 				
 					moveForward(100);
-					osDelay(1000);
+					osDelay(SELF_DRIVING_STRAIGHT);
 				
 					moveRight(100);
-					osDelay(1100);
+					osDelay(SELF_DRIVING_RIGHT);
 				
 					moveForward(100);
-					osDelay(1000);
+					osDelay(SELF_DRIVING_STRAIGHT);
 				
 					moveRight(100);
-					osDelay(1100);
+					osDelay(SELF_DRIVING_RIGHT);
 				
 					moveForward(100);
-					osDelay(1000);
+					osDelay(SELF_DRIVING_STRAIGHT);
 				
 					moveRight(100);
-					osDelay(1100);
+					osDelay(SELF_DRIVING_RIGHT);
 				
 					moveForward(100);
-					osDelay(1000);
+					osDelay(SELF_DRIVING_STRAIGHT);
 				
 					moveLeft(100);
-					osDelay(600);
+					osDelay(SELF_DRIVING_LEFT);
 					
 					driveUntilWall();
-					osDelay(500);
+					osDelay(100);
 					
 					currMvState = STOP;
 					runFinished = true;
