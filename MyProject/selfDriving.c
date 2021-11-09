@@ -4,19 +4,20 @@
 #include "definitions.h"
 
 extern volatile bool objectDetected;
+extern osSemaphoreId_t objectDetectedSem;
 
+/*
 void driveSelf() {
 	objectDetected = false;
+	startUltrasonic();
 	moveForward(100);
-	while (!objectDetected)
-	{
-		osDelay(10);
-	}
+	osSemaphoreAcquire(objectDetectedSem, osWaitForever);
 	objectDetected = false;
+	stopUltrasonic();
 
 	moveLeft(100);
 	osDelay(600);
-/*
+
 	moveForward(100);
 	osDelay(1000);
 
@@ -51,6 +52,7 @@ void driveSelf() {
 	}
 	stopUltrasonic();
 	objectDetected = false;
-	*/
+	
 	moveStop();
 }
+*/

@@ -4,7 +4,7 @@
 #include "audioFunctions.h"
 #include "queueFunctions.h"
 #include "ultrasonicFunctions.h"
-#include "selfDriving.h"
+//#include "selfDriving.h"
 #include "initializationFunctions.h"
 
 /*----------------------------------------------------------------------------
@@ -30,6 +30,7 @@ const osThreadAttr_t lowPriority = {
 
 osSemaphoreId_t tBrainSem;
 osSemaphoreId_t tMotorControlSem;
+osSemaphoreId_t objectDetectedSem;
 
 /*----------------------------------------------------------------------------
  * UART Interrupt
@@ -40,7 +41,7 @@ void UART2_IRQHandler(void)
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	
 	//IRQ Reciever
-	if ((UART2->S1 & UART_S1_RDRF_MASK) && currMvState != SELFDRIVING) 
+	if ((UART2->S1 & UART_S1_RDRF_MASK) /*&& currMvState != SELFDRIVING*/) 
 	{
 		// received a character
 		// RDRF cleared when reading from UART2->D
@@ -90,6 +91,7 @@ void TPM2_IRQHandler(void)
 	// timer has not overflowed
 	if (TPM2_C0V <= 250 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
 		moveStop();
+		osSemaphoreRelease(objectDetectedSem);
 		objectDetected = true;
 	}
 	
@@ -102,6 +104,57 @@ void TPM2_IRQHandler(void)
 	// clear Channel Flag (need to clear for both STATUS and CnSC)
 	TPM2_STATUS &= ~TPM_STATUS_CH0F_MASK;
 	TPM2_C0SC |= TPM_CnSC_CHF(1);
+}
+
+//Self-driving
+
+void driveSelf() {
+	objectDetected = false;
+	startUltrasonic();
+	moveForward(100);
+	osSemaphoreAcquire(objectDetectedSem, osWaitForever);
+	objectDetected = false;
+	stopUltrasonic();
+
+	moveLeft(100);
+	osDelay(600);
+/*
+	moveForward(100);
+	osDelay(1000);
+
+	moveRight(100);
+	osDelay(1000);
+	moveStop();
+
+	moveForward(100);
+	osDelay(1000);
+
+	moveRight(100);
+	osDelay(1100);
+
+	moveForward(100);
+	osDelay(1000);
+
+	moveRight(100);
+	osDelay(1100);
+
+	moveForward(100);
+	osDelay(1000);
+
+	moveLeft(100);
+	osDelay(600);
+	
+	startUltrasonic();
+
+	moveForward(100);
+	while (!objectDetected)
+	{
+		osDelay(20);
+	}
+	stopUltrasonic();
+	objectDetected = false;
+	*/
+	moveStop();
 }
 
 /*----------------------------------------------------------------------------
@@ -291,12 +344,12 @@ int main (void) {
 	initBuzzer();
 	initUltrasonic();
 	initUART2(BAUD_RATE);	
-	
-	startUltrasonic();
+	Q_Init(&Rx_Q);
 	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);
 	tMotorControlSem = osSemaphoreNew(1,0,NULL);
+	objectDetectedSem = osSemaphoreNew(1,0,NULL);
 	
 	/* ----------------- Threads/Kernels ----------------- */
 	osKernelInitialize();    // Initialize CMSIS-RTOS
