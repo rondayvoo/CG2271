@@ -39,8 +39,11 @@ void audioSong(int note)
 
 void audioRunFin(void)
 {
-	for (int i = 0; i < SONGRUNFIN_NOTE_COUNT; i++) {
-        TPM1->MOD = songRunFin[i];       // play at music note frequency
-        TPM1_C0V = songRunFin[i] / 2;    // mantain 50% duty cycle
+	for (int i = 0; i < SONGMAIN_NOTE_COUNT; i++) {
+        TPM1->MOD = FREQUENCY_TO_MOD(songRunFin[i] * 4);       // play at music note frequency
+        TPM1_C0V = FREQUENCY_TO_MOD(songRunFin[i] * 4) / 2;    // mantain 50% duty cycle
+				osDelay(100);
     }
+		TPM1->MOD = 0;
+		TPM1_C0V = 0;
 }

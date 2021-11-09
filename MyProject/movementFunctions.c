@@ -18,7 +18,7 @@ void moveForward(int power)
 	
 	float coeff = (float) power / 100.0f;
 	
-	TPM0_C0V = TPM0->MOD * coeff;
+	TPM0_C0V = TPM0->MOD * coeff * 0.98;
 	TPM0_C1V = 0;
 	TPM0_C2V = TPM0->MOD * coeff;
 	TPM0_C3V = 0;

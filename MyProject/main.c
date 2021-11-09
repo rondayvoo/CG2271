@@ -16,8 +16,6 @@ bool isConnected = false;
 volatile int isWaitingState = 1;
 bool runFinished = false;
 mvState currMvState = STOP;
-volatile bool isSelfDriving = false;
-volatile bool objectDetected = false;
 Q_T Tx_Q, Rx_Q;
 
 const osThreadAttr_t highPriority = {
@@ -92,7 +90,6 @@ void TPM2_IRQHandler(void)
 	if (TPM2_C0V <= 250 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
 		moveStop();
 		osSemaphoreRelease(objectDetectedSem);
-		objectDetected = true;
 	}
 	
 	else 
@@ -108,53 +105,11 @@ void TPM2_IRQHandler(void)
 
 //Self-driving
 
-void driveSelf() {
-	objectDetected = false;
+void driveUntilWall() {
 	startUltrasonic();
 	moveForward(100);
 	osSemaphoreAcquire(objectDetectedSem, osWaitForever);
-	objectDetected = false;
 	stopUltrasonic();
-
-	moveLeft(100);
-	osDelay(600);
-/*
-	moveForward(100);
-	osDelay(1000);
-
-	moveRight(100);
-	osDelay(1000);
-	moveStop();
-
-	moveForward(100);
-	osDelay(1000);
-
-	moveRight(100);
-	osDelay(1100);
-
-	moveForward(100);
-	osDelay(1000);
-
-	moveRight(100);
-	osDelay(1100);
-
-	moveForward(100);
-	osDelay(1000);
-
-	moveLeft(100);
-	osDelay(600);
-	
-	startUltrasonic();
-
-	moveForward(100);
-	while (!objectDetected)
-	{
-		osDelay(20);
-	}
-	stopUltrasonic();
-	objectDetected = false;
-	*/
-	moveStop();
 }
 
 /*----------------------------------------------------------------------------
@@ -231,7 +186,7 @@ void tMotorControl(void *argument)
 		osSemaphoreAcquire(tMotorControlSem, osWaitForever);
 		
 		switch (currMvState)
-			{
+		{
 				case STOP:
 					moveStop();
 					break;
@@ -248,11 +203,42 @@ void tMotorControl(void *argument)
 					moveRight(100);
 					break;
 				case SELFDRIVING:
-					driveSelf();
+					driveUntilWall();
+				
+					moveLeft(100);
+					osDelay(600);
+				
+					moveForward(100);
+					osDelay(1000);
+				
+					moveRight(100);
+					osDelay(1100);
+				
+					moveForward(100);
+					osDelay(1000);
+				
+					moveRight(100);
+					osDelay(1100);
+				
+					moveForward(100);
+					osDelay(1000);
+				
+					moveRight(100);
+					osDelay(1100);
+				
+					moveForward(100);
+					osDelay(1000);
+				
+					moveLeft(100);
+					osDelay(600);
+					
+					driveUntilWall();
+					currMvState = STOP;
+					runFinished = true;
 					break;
 				default:
 					break;
-			}
+		}
 	}
 }
 
@@ -307,7 +293,6 @@ void tLED(void *argument)
 void tAudio(void *argument)
 {
 	bool localIsConnected = false;
-	bool localRunFinished = false;
 	int currNote = 0;
 	
 	for (;;) 
