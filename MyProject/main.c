@@ -40,7 +40,7 @@ void UART2_IRQHandler(void)
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	
 	//IRQ Reciever
-	if ((UART2->S1 & UART_S1_RDRF_MASK) && !isSelfDriving) 
+	if ((UART2->S1 & UART_S1_RDRF_MASK) && currMvState != SELFDRIVING) 
 	{
 		// received a character
 		// RDRF cleared when reading from UART2->D
@@ -88,8 +88,8 @@ void TPM2_IRQHandler(void)
 	
 	// no obstacles within ?cm
 	// timer has not overflowed
-	if (TPM2_C0V <= 1000 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
-		//moveStop();
+	if (TPM2_C0V <= 250 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
+		moveStop();
 		objectDetected = true;
 	}
 	
@@ -160,7 +160,8 @@ void tBrain(void *argument)
 			
 			case ESP32_MODE_AUTO:
 			{
-				isSelfDriving = true;
+				currMvState = SELFDRIVING;
+				osSemaphoreRelease(tMotorControlSem);
 				break;
 			}
 			
@@ -174,11 +175,9 @@ void tMotorControl(void *argument)
 {
 	for (;;) 
 	{
-		if (!isSelfDriving) 
-		{
-			osSemaphoreAcquire(tMotorControlSem, osWaitForever);
-			
-			switch (currMvState)
+		osSemaphoreAcquire(tMotorControlSem, osWaitForever);
+		
+		switch (currMvState)
 			{
 				case STOP:
 					moveStop();
@@ -195,17 +194,12 @@ void tMotorControl(void *argument)
 				case RIGHT:
 					moveRight(100);
 					break;
+				case SELFDRIVING:
+					driveSelf();
+					break;
 				default:
 					break;
 			}
-		}
-		
-		else 
-		{
-			driveSelf();
-			isSelfDriving = false;
-			runFinished = true;
-		}
 	}
 }
 
@@ -297,6 +291,8 @@ int main (void) {
 	initBuzzer();
 	initUltrasonic();
 	initUART2(BAUD_RATE);	
+	
+	startUltrasonic();
 	
 	/* ----------------- Semaphores ----------------- */
 	tBrainSem = osSemaphoreNew(Q_SIZE,0,NULL);

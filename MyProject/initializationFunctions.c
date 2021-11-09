@@ -157,7 +157,7 @@ void initUltrasonic (void)
 	// 'Activation' phase of PIT is HALF of PIT frequency, need to adjust accordingly
 	PIT->CHANNEL[0].LDVAL = TRIGGER_LDVAL_PULSE;              // Countdown from this value
 	PIT->CHANNEL[0].TCTRL |= PIT_TCTRL_TIE_MASK;             // Enable PIT Interrupts
-	NVIC_EnableIRQ(PIT_IRQn);
+	//NVIC_EnableIRQ(PIT_IRQn);
 	
 	/***************************** Ultrasonic Echo *****************************/
 	SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;                     // Enable PortB clocking

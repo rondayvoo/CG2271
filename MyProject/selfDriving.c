@@ -6,16 +6,17 @@
 extern volatile bool objectDetected;
 
 void driveSelf() {
-	startUltrasonic();
-	
+	objectDetected = false;
 	moveForward(100);
-	while (!objectDetected);
-	stopUltrasonic();
+	while (!objectDetected)
+	{
+		osDelay(10);
+	}
 	objectDetected = false;
 
 	moveLeft(100);
-	osDelay(1000);
-
+	osDelay(600);
+/*
 	moveForward(100);
 	osDelay(1000);
 
@@ -27,25 +28,29 @@ void driveSelf() {
 	osDelay(1000);
 
 	moveRight(100);
-	osDelay(1000);
+	osDelay(1100);
 
 	moveForward(100);
 	osDelay(1000);
 
 	moveRight(100);
-	osDelay(1000);
+	osDelay(1100);
 
 	moveForward(100);
 	osDelay(1000);
 
 	moveLeft(100);
-	osDelay(1000);
+	osDelay(600);
 	
 	startUltrasonic();
 
 	moveForward(100);
-	while (!objectDetected);
+	while (!objectDetected)
+	{
+		osDelay(20);
+	}
 	stopUltrasonic();
 	objectDetected = false;
+	*/
 	moveStop();
 }
