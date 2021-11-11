@@ -11,7 +11,7 @@ C5, B4, G4, C5, C5, B4, G4, G4, C5, B4, G4, D4 * 2, D4 * 2, B4, G4, G4,
 A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4, A4, G4, A4, E4 * 2, D4 * 2, C5, A4, A4,
 A4, A4, 0, A4, B4, 0, B4, 0, C5, C5, 0, C5, B4, 0, B4, 0
 };
-int songRunFin[0] = {};
+int songRunFin[SONGRUNFIN_NOTE_COUNT] = {C4, D4, E4, F4, G4, A4, B4, C5};
 
 void audioStop(void)
 {
@@ -39,10 +39,10 @@ void audioSong(int note)
 
 void audioRunFin(void)
 {
-	for (int i = 0; i < SONGMAIN_NOTE_COUNT; i++) {
+	for (int i = 0; i < SONGRUNFIN_NOTE_COUNT; i++) {
         TPM1->MOD = FREQUENCY_TO_MOD(songRunFin[i] * 4);       // play at music note frequency
         TPM1_C0V = FREQUENCY_TO_MOD(songRunFin[i] * 4) / 2;    // mantain 50% duty cycle
-				osDelay(100);
+				osDelay(150);
     }
 		TPM1->MOD = 0;
 		TPM1_C0V = 0;

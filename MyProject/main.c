@@ -86,9 +86,8 @@ void TPM2_IRQHandler(void)
 	
 	// no obstacles within ?cm
 	// timer has not overflowed
-	if (TPM2_C0V <= 250 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
+	if (TPM2_C0V <= 300 && ~(TPM2_STATUS & TPM_STATUS_TOF_MASK)) {
 		osSemaphoreRelease(objectDetectedSem);
-		moveStop();
 	}
 	
 	else 
@@ -110,6 +109,7 @@ void driveUntilWall(void) {
 	objectDetectedSem = osSemaphoreNew(1,0,NULL);
 	moveForward(100);
 	osSemaphoreAcquire(objectDetectedSem, osWaitForever);
+	osSemaphoreDelete(objectDetectedSem);
 	//stopUltrasonic();
 }
 
@@ -205,6 +205,7 @@ void tMotorControl(void *argument)
 					break;
 				case SELFDRIVING:
 					driveUntilWall();
+					moveStop();
 					osDelay(100);
 				
 					moveLeft(100);
@@ -221,7 +222,7 @@ void tMotorControl(void *argument)
 				
 					moveRight(100);
 					osDelay(SELF_DRIVING_RIGHT);
-				
+					
 					moveForward(100);
 					osDelay(SELF_DRIVING_STRAIGHT);
 				
@@ -236,6 +237,7 @@ void tMotorControl(void *argument)
 					
 					driveUntilWall();
 					osDelay(100);
+					moveStop();
 					
 					currMvState = STOP;
 					runFinished = true;
@@ -346,7 +348,7 @@ int main (void) {
 	osThreadNew(tBrain, NULL, &highPriority);
 	osThreadNew(tMotorControl, NULL, NULL);
 	osThreadNew(tLED, NULL, &lowPriority);
-	osThreadNew(tAudio, NULL, &lowPriority);
+	osThreadNew(tAudio, NULL, &lowPriority);                          
 	osKernelStart();                      // Start thread execution
 	
 	while (1) {
