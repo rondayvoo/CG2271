@@ -13,7 +13,7 @@
 volatile uint8_t rx_data = ESP32_MISC_RESERVED;
 bool isConnected = false;
 volatile int isWaitingState = 1;
-bool runFinished = false;
+bool playEndMusic = false;
 mvState currMvState = STOP;
 Q_T Tx_Q, Rx_Q;
 
@@ -174,6 +174,12 @@ void tBrain(void *argument)
 				break;
 			}
 			
+			case ESP32_MODE_MANUAL:
+			{
+				playEndMusic = true;
+				break;
+			}
+			
 			default:
 				break;
 		}
@@ -240,7 +246,6 @@ void tMotorControl(void *argument)
 					moveStop();
 					
 					currMvState = STOP;
-					runFinished = true;
 					break;
 				default:
 					break;
@@ -309,10 +314,10 @@ void tAudio(void *argument)
 			localIsConnected = true;
 		}
 		
-		else if (runFinished)
+		else if (playEndMusic)
 		{
 			audioRunFin();
-			runFinished = false;
+			playEndMusic = false;
 		}
 		
 		else if (isConnected)
