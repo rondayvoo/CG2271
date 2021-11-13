@@ -48,9 +48,9 @@ String response, ip_address;
 String output26State = "off";
 
 // check using ipconfig (Windows cmd)
-IPAddress local_IP(192, 168, 42, 156);   // ensure no clashing IP 
+IPAddress local_IP(192,168,151,156);   // ensure no clashing IP 
 // Gateway IP address
-IPAddress gateway(192, 168, 42, 196);     // 1,1 at the end
+IPAddress gateway(192,168,151,139);     // 1,1 at the end
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4); 
@@ -169,6 +169,18 @@ void loop() {
   {
     response = "MOVE BACK";
     Serial2.write(ESP32_MOVE_BACK);
+  }
+
+  if(req.indexOf("selfDriveStart") != -1)
+  {
+    response = "SELF DRIVE START";
+    Serial2.write(ESP32_MODE_AUTO);
+  }
+
+  if(req.indexOf("selfDriveStop") != -1)
+  {
+    response = "SELF DRIVE STOP";
+    Serial2.write(ESP32_MODE_MANUAL);
   }
 
   client.println("HTTP/1.1 200 OK");
