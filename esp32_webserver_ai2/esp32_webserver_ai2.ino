@@ -35,8 +35,8 @@ int wait30 = 30000; // time to reconnect when connection is lost.
 /* ----------------------------- Wifi Setup ----------------------------- */
 #include <WiFi.h>
 // Replace with your network credentials, change to 2.4Ghz if using Hotspot
-const char* ssid = "BigTits";
-const char* password = "rtpy4269";
+const char* ssid = "username";
+const char* password = "password"; //Actual username and password omitted due to privacy reasons
 
 // Set web server port number to 80
 WiFiServer server(80);
